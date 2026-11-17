@@ -93,6 +93,26 @@ export async function salvarMusica(
   redirect(`/musicas/${musicaId}`);
 }
 
+/** Arquivar: some do acervo e da montagem de repertório, mas continua nos cultos antigos. */
+export async function arquivarMusica(formData: FormData): Promise<void> {
+  const ctx = await exigirAdmin();
+  const id = String(formData.get("id") ?? "");
+  const arquivar = formData.get("arquivar") === "1";
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("musica")
+    .update({ arquivada: arquivar })
+    .eq("id", id)
+    .eq("igreja_id", ctx.igreja.id);
+  if (error) redirect(`/musicas/${id}/editar?erro=falha`);
+
+  revalidatePath("/musicas");
+  revalidatePath(`/musicas/${id}`);
+  redirect(arquivar ? "/musicas" : `/musicas/${id}`);
+}
+
+/** Excluir de vez: apaga a música, o áudio e a tira também dos repertórios antigos. */
 export async function excluirMusica(formData: FormData): Promise<void> {
   const ctx = await exigirAdmin();
   const id = String(formData.get("id") ?? "");
@@ -107,11 +127,7 @@ export async function excluirMusica(formData: FormData): Promise<void> {
   if (!atual) redirect("/musicas");
 
   const { error } = await supabase.from("musica").delete().eq("id", id).eq("igreja_id", ctx.igreja.id);
-  if (error) {
-    // 23503 = música usada em algum culto (o histórico é preservado).
-    const motivo = error.code === "23503" ? "em-uso" : "falha";
-    redirect(`/musicas/${id}/editar?erro=${motivo}`);
-  }
+  if (error) redirect(`/musicas/${id}/editar?erro=falha`);
 
   await apagarAudio(atual.audio_url);
   revalidatePath("/musicas");
