@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Library, Users } from "lucide-react";
+import { CalendarDays, Home, Library, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -8,12 +8,15 @@ import { cn } from "@/lib/utils";
 
 const ITENS = [
   { href: "/", rotulo: "Início", icone: Home },
+  { href: "/escala", rotulo: "Escala", icone: CalendarDays },
   { href: "/musicas", rotulo: "Músicas", icone: Library },
   { href: "/equipe", rotulo: "Equipe", icone: Users },
 ] as const;
 
 function ativo(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  if (href === "/") return pathname === "/";
+  if (href === "/escala" && pathname.startsWith("/disponibilidade")) return true;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /** Links no cabeçalho (computador). */
