@@ -5,16 +5,14 @@ import { exigirAdmin } from "@/lib/auth";
 import { cifraParaEdicao } from "@/lib/musicas/formulario";
 import { uploadDeAudioHabilitado } from "@/lib/storage/audio";
 import { createClient } from "@/lib/supabase/server";
-import { AcoesPerigosas } from "../../excluir-musica";
+import { ExcluirMusica } from "../../excluir-musica";
 import { MusicaForm } from "../../musica-form";
 
 export const metadata: Metadata = { title: "Editar música" };
 
 const ERROS: Record<string, string> = {
-  falha: "Não foi possível concluir a ação. Tente de novo.",
+  falha: "Não foi possível excluir a música. Tente de novo.",
 };
-
-const PERIODO = { manha: "manhã", noite: "noite" } as const;
 
 export default async function EditarMusicaPage({
   params,
@@ -33,16 +31,6 @@ export default async function EditarMusicaPage({
     .eq("igreja_id", ctx.igreja.id)
     .maybeSingle();
   if (!musica) notFound();
-
-  const { data: usos } = await supabase
-    .from("setlist_item")
-    .select("culto:culto!setlist_item_culto_id_igreja_id_fkey (data, periodo)")
-    .eq("musica_id", musica.id);
-  const cultos = (usos ?? [])
-    .map((u) => u.culto)
-    .filter((c) => c !== null)
-    .sort((a, b) => b.data.localeCompare(a.data))
-    .map((c) => `${c.data.slice(8, 10)}/${c.data.slice(5, 7)}/${c.data.slice(0, 4)} ${PERIODO[c.periodo]}`);
 
   return (
     <div className="space-y-4">
@@ -72,12 +60,7 @@ export default async function EditarMusicaPage({
           observacoes: musica.observacoes ?? "",
         }}
       />
-      <AcoesPerigosas
-        id={musica.id}
-        titulo={musica.titulo}
-        arquivada={musica.arquivada}
-        cultos={cultos}
-      />
+      <ExcluirMusica id={musica.id} titulo={musica.titulo} />
     </div>
   );
 }

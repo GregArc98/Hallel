@@ -73,12 +73,6 @@ export default async function MusicaPage({ params }: PageProps<"/musicas/[id]">)
 
   return (
     <div>
-      {musica.arquivada && (
-        <p className="mb-3 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-          Música arquivada: não aparece no acervo nem na montagem de repertório.
-          {ctx.admin && " Para trazê-la de volta, use Editar → Desarquivar."}
-        </p>
-      )}
       <div className="mb-3 flex items-center justify-between gap-2">
         <Button asChild variant="ghost" size="sm" className="-ml-3">
           <Link href="/musicas">

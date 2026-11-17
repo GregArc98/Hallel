@@ -79,8 +79,7 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
 - **Login só para cadastrados:** a conta é ligada ao integrante automaticamente pelo
   e-mail confirmado (gatilhos no banco), nos dois sentidos — cadastrar antes ou depois
   do primeiro login funciona. Quem entra sem cadastro vê "Peça ao líder".
-- Músicas podem ser **arquivadas** (somem do acervo, continuam nos cultos antigos) ou
-  **excluídas de vez** (saem também dos repertórios antigos; o app avisa antes).
+- Excluir uma música (com confirmação) também a tira dos repertórios antigos em que apareceu.
 - Tipos TypeScript em `src/lib/supabase/database.types.ts` (gerados pelo Supabase;
   gere de novo após mudar o esquema).
 

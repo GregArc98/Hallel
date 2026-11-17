@@ -13,7 +13,7 @@ Documento vivo com as decisões aprovadas. Atualize ao mudar o escopo.
 | Multi-igreja | `igreja_id` em todas as tabelas (tenant); seletor de igreja só aparece se a pessoa estiver em mais de uma |
 | Visibilidade | Membro vê a escala completa (só leitura) e apenas escalas/repertórios **publicados**. Indisponibilidade só para a própria pessoa e admins |
 | Conflitos | Avisos, não bloqueios (ex.: mesma pessoa em duas funções no culto) |
-| Tirar música do acervo | **Arquivar** (padrão, reversível): some do acervo e da montagem de repertório, continua nos cultos antigos com cifra e áudio. **Excluir de vez**: apaga tudo e tira dos repertórios antigos, após aviso listando os cultos |
+| Excluir música | Permitido sempre (com confirmação). A música também sai dos repertórios antigos em que apareceu |
 | Cifras | Armazenadas em **ChordPro**. O usuário cola/edita no formato "acorde em cima da letra" e o app converte nos dois sentidos |
 | Offline | Setlists dos próximos cultos do membro (cifras, letras, transposição) + botão "baixar áudios deste culto" |
 | Nomes | Tabelas/colunas de domínio em português sem acento; código genérico em inglês |

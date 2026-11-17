@@ -1,4 +1,4 @@
-import { Archive, FileMusic, Headphones, Plus, Search } from "lucide-react";
+import { FileMusic, Headphones, Plus, Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,11 +10,10 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Músicas" };
 
-function urlCom(params: { q?: string; tag?: string; arquivadas?: boolean }) {
+function urlCom(params: { q?: string; tag?: string }) {
   const sp = new URLSearchParams();
   if (params.q) sp.set("q", params.q);
   if (params.tag) sp.set("tag", params.tag);
-  if (params.arquivadas) sp.set("arquivadas", "1");
   const s = sp.toString();
   return s ? `/musicas?${s}` : "/musicas";
 }
@@ -24,7 +23,6 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const tag = typeof params.tag === "string" ? params.tag : "";
-  const arquivadas = ctx.admin && params.arquivadas === "1";
 
   const supabase = await createClient();
   let consulta = supabase
@@ -33,21 +31,13 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
       "id, titulo, artista, hinario_numero, hinario_sigla, tom_original, tags, tem_cifra, audio_url, audio_url_externo",
     )
     .eq("igreja_id", ctx.igreja.id)
-    .eq("arquivada", arquivadas)
     .order("titulo");
   if (q) consulta = consulta.ilike("busca", padraoContem(q));
   if (tag) consulta = consulta.contains("tags", [tag]);
 
-  const [{ data, error }, { data: todasTags }, { count: totalArquivadas }] = await Promise.all([
+  const [{ data, error }, { data: todasTags }] = await Promise.all([
     consulta,
-    supabase.from("musica").select("tags").eq("igreja_id", ctx.igreja.id).eq("arquivada", arquivadas),
-    ctx.admin
-      ? supabase
-          .from("musica")
-          .select("id", { count: "exact", head: true })
-          .eq("igreja_id", ctx.igreja.id)
-          .eq("arquivada", true)
-      : Promise.resolve({ count: 0 }),
+    supabase.from("musica").select("tags").eq("igreja_id", ctx.igreja.id),
   ]);
   if (error) throw new Error(error.message);
   const musicas = data ?? [];
@@ -59,8 +49,8 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">{arquivadas ? "Músicas arquivadas" : "Músicas"}</h1>
-        {ctx.admin && !arquivadas && (
+        <h1 className="text-2xl font-bold">Músicas</h1>
+        {ctx.admin && (
           <Button asChild>
             <Link href="/musicas/nova">
               <Plus /> Nova música
@@ -71,7 +61,6 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
 
       <form action="/musicas" role="search" className="relative">
         {tag && <input type="hidden" name="tag" value={tag} />}
-        {arquivadas && <input type="hidden" name="arquivadas" value="1" />}
         <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground" />
         <input
           type="search"
@@ -86,7 +75,7 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
       {tags.length > 0 && (
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1" aria-label="Filtrar por tag">
           <Link
-            href={urlCom({ q, arquivadas })}
+            href={urlCom({ q })}
             className={cn(
               "shrink-0 rounded-full border px-3 py-1.5 text-sm",
               !tag ? "border-primary bg-primary text-primary-foreground" : "text-muted-foreground",
@@ -97,7 +86,7 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
           {tags.map((t) => (
             <Link
               key={t}
-              href={urlCom({ q, tag: t === tag ? undefined : t, arquivadas })}
+              href={urlCom({ q, tag: t === tag ? undefined : t })}
               aria-current={t === tag ? "true" : undefined}
               className={cn(
                 "shrink-0 rounded-full border px-3 py-1.5 text-sm",
@@ -119,7 +108,7 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
       </p>
 
       {musicas.length > 0 && (
-      <ul className="divide-y rounded-xl border">
+        <ul className="divide-y rounded-xl border">
         {musicas.map((m) => (
           <li key={m.id}>
             <Link
@@ -154,15 +143,6 @@ export default async function MusicasPage({ searchParams }: PageProps<"/musicas"
       </ul>
       )}
 
-      {ctx.admin && (arquivadas || (totalArquivadas ?? 0) > 0) && (
-        <Link
-          href={arquivadas ? "/musicas" : urlCom({ arquivadas: true })}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          <Archive className="size-4" />
-          {arquivadas ? "Voltar ao acervo" : `Ver arquivadas (${totalArquivadas})`}
-        </Link>
-      )}
     </div>
   );
 }

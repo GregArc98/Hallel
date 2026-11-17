@@ -315,7 +315,6 @@ export type Database = {
       }
       musica: {
         Row: {
-          arquivada: boolean
           artista: string | null
           atualizado_em: string
           audio_url: string | null
@@ -338,7 +337,6 @@ export type Database = {
           youtube_url: string | null
         }
         Insert: {
-          arquivada?: boolean
           artista?: string | null
           atualizado_em?: string
           audio_url?: string | null
@@ -361,7 +359,6 @@ export type Database = {
           youtube_url?: string | null
         }
         Update: {
-          arquivada?: boolean
           artista?: string | null
           atualizado_em?: string
           audio_url?: string | null
