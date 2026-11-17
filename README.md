@@ -16,7 +16,8 @@ Requisitos: Node.js 20.9+ (recomendado 22).
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+cp .env.example .env.local   # e preencha (ver "Variáveis de ambiente")
+npm run dev                  # http://localhost:3000
 ```
 
 Demonstração do visualizador de cifra (não precisa de banco): **/demo**.
@@ -33,17 +34,65 @@ repositório na Vercel: cada push gera um link de pré-visualização.
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Gera os tipos de rota do Next e roda o TypeScript |
 | `npm run build` | Build de produção |
+| `npm run test:db` | Aplica migrações + seed num Postgres local temporário e testa as regras de acesso (requer Postgres 15+ instalado) |
+| `npm run db:seed:gerar` | Gera `supabase/seed.sql` a partir de `src/data/seed.ts` |
 
-O CI (GitHub Actions) roda lint, typecheck, testes e build a cada push.
+O CI (GitHub Actions) roda lint, typecheck, testes unitários, testes de banco e build a cada push.
 
 ## Variáveis de ambiente
 
-Ainda nenhuma. Entram nas próximas etapas (um `.env.example` será adicionado):
+Copie `.env.example` para `.env.local`. Na Vercel, cadastre as mesmas em
+*Project → Settings → Environment Variables*.
 
-| Variável | Etapa | Uso |
+| Variável | Onde achar | Uso |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 3 | Banco e login |
-| `BLOB_READ_WRITE_TOKEN` | 4 | Upload dos áudios (Vercel Blob) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → Data API | Banco e login |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project Settings → API Keys (`sb_publishable_…`) | Banco e login |
+| `NEXT_PUBLIC_LOGIN_GOOGLE` | `1` para mostrar "Entrar com Google" | Opcional |
+| `BLOB_READ_WRITE_TOKEN` | Vercel → Storage → Blob (etapa 4) | Upload dos áudios |
+
+As chaves `NEXT_PUBLIC_*` são públicas por natureza (vão para o navegador); quem
+protege os dados são as regras de RLS do banco. **Nunca** coloque a chave
+`service_role`/secret no app.
+
+## Banco de dados (Supabase)
+
+- Migrações em `supabase/migrations/` (aplicar em ordem). Seed em `supabase/seed.sql`
+  (para banco recém-criado).
+- **Regras de acesso (RLS):** só integrantes ativos veem os dados da própria igreja;
+  só admins alteram; membros veem só escalas/repertórios **publicados**;
+  indisponibilidade só para a própria pessoa e admins; a igreja nunca fica sem admin.
+- **Login só para cadastrados:** a conta é ligada ao integrante automaticamente pelo
+  e-mail confirmado (gatilhos no banco), nos dois sentidos — cadastrar antes ou depois
+  do primeiro login funciona. Quem entra sem cadastro vê "Peça ao líder".
+- Tipos TypeScript em `src/lib/supabase/database.types.ts` (gerados pelo Supabase;
+  gere de novo após mudar o esquema).
+
+### Configuração do Supabase (uma vez)
+
+1. **Authentication → URL Configuration**
+   - *Site URL:* a URL de produção (ex.: `https://hallel.vercel.app`) ou `http://localhost:3000`.
+   - *Redirect URLs:* `http://localhost:3000/**`, `http://*:3000/**` (rede local) e
+     `https://*.vercel.app/**`.
+2. **Primeiro admin** (SQL Editor), trocando nome e e-mail:
+   ```sql
+   update public.integrante set email = 'seu@email.com', papel = 'admin'
+   where nome = 'Matheus';
+   ```
+   Depois é só entrar com esse e-mail. Os demais integrantes recebem o e-mail pelo
+   app (etapa 5) ou pelo mesmo SQL (sem `papel = 'admin'`).
+3. **(Recomendado) Link mágico que funciona em qualquer aparelho.** Por padrão o link
+   só funciona no mesmo navegador em que foi pedido. Em *Authentication → Emails →
+   Magic Link*, troque o link do modelo por:
+   ```html
+   <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Entrar no Hallel</a>
+   ```
+4. **(Opcional) Google:** crie um OAuth Client no Google Cloud (tipo *Web*, redirect
+   `https://SEU-PROJETO.supabase.co/auth/v1/callback`), ative o provedor em
+   *Authentication → Sign In / Providers → Google* e use `NEXT_PUBLIC_LOGIN_GOOGLE=1`.
+5. **E-mails:** o envio padrão do Supabase tem limite baixo por hora — suficiente para
+   testes. Para a equipe toda, configure um SMTP próprio (ex.: Resend, plano grátis) em
+   *Authentication → Emails → SMTP Settings*.
 
 ## Estrutura
 
@@ -52,9 +101,16 @@ src/
   app/                    rotas (Next.js App Router)
   components/ui/          componentes base no padrão shadcn/ui (Radix + Tailwind)
   components/chord-sheet/ visualizador de cifra (ChordSheet + SongViewer)
+  app/(app)/              área logada (exige integrante cadastrado)
+  app/entrar, app/auth/   login (link mágico / Google), retorno e saída
   hooks/                  preferências locais, tela sempre ligada, rolagem automática
+  lib/auth.ts             sessão do usuário e igreja atual (Data Access Layer)
+  lib/supabase/           clientes (servidor/navegador), proxy de sessão e tipos do banco
+  proxy.ts                renova a sessão e manda quem não está logado para /entrar
   lib/music/              motor musical — isolado, sem dependências, 100% testado
   data/exemplos/          cifra real de exemplo (testes, demo e seed)
+supabase/                 migrações e seed
+scripts/                  gerador do seed e testes de banco
 docs/PLANO.md             decisões, modelo de dados, telas e etapas
 ```
 
