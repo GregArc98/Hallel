@@ -15,8 +15,8 @@ const allowedDevOrigins = [
 
 const nextConfig: NextConfig = {
   allowedDevOrigins,
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Cache Components desativado de propósito: quase toda tela depende do usuário
+  // logado (RLS por pessoa), então o ganho é pequeno e a complexidade é grande.
   turbopack: {
     rules: {
       "*.css": {
