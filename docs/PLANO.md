@@ -7,12 +7,13 @@ Documento vivo com as decisões aprovadas. Atualize ao mudar o escopo.
 | Tema | Decisão |
 |---|---|
 | Stack | Next.js 16 (App Router) + TypeScript + Tailwind 4 + shadcn/ui; Supabase (Postgres, Auth, RLS); deploy na Vercel |
-| Áudios | **Vercel Blob** (Hobby: ~1 GB de espaço, ~10 GB de tráfego/mês, sem cartão). Acesso isolado num módulo de armazenamento para trocar por R2/B2 sem reescrever o app |
+| Áudios | **Vercel Blob** (Hobby: ~1 GB de espaço, ~10 GB de tráfego/mês, sem cartão). Arquivos públicos com nome aleatório; upload direto do navegador autorizado só para admins. Acesso isolado em `lib/storage` para trocar por R2/B2 |
 | Login | Google ou link mágico por e-mail. **Só e-mails cadastrados** por um admin entram; no 1º login a conta é vinculada ao integrante pelo e-mail |
 | Papéis | `admin` (líder e co-líderes) e `membro`, guardados no integrante |
 | Multi-igreja | `igreja_id` em todas as tabelas (tenant); seletor de igreja só aparece se a pessoa estiver em mais de uma |
 | Visibilidade | Membro vê a escala completa (só leitura) e apenas escalas/repertórios **publicados**. Indisponibilidade só para a própria pessoa e admins |
 | Conflitos | Avisos, não bloqueios (ex.: mesma pessoa em duas funções no culto) |
+| Excluir música | Permitido sempre (com confirmação). A música também sai dos repertórios antigos em que apareceu |
 | Cifras | Armazenadas em **ChordPro**. O usuário cola/edita no formato "acorde em cima da letra" e o app converte nos dois sentidos |
 | Offline | Setlists dos próximos cultos do membro (cifras, letras, transposição) + botão "baixar áudios deste culto" |
 | Nomes | Tabelas/colunas de domínio em português sem acento; código genérico em inglês |
@@ -72,8 +73,8 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 1 | Motor musical (`src/lib/music`) com testes | ✅ |
 | 2 | Visualizador de cifra (sem banco) — `/demo` | ✅ |
 | 3 | Supabase: schema, RLS, seed, auth | ✅ |
-| 4 | Acervo de músicas + editor de cifra + áudio | ⏳ |
-| 5 | Equipe e funções | |
+| 4 | Acervo de músicas + editor de cifra + áudio | ✅ |
+| 5 | Equipe e funções | ⏳ |
 | 6 | Escala + indisponibilidade | |
 | 7 | Repertório do culto | |
 | 8 | Início do membro + Modo culto | |

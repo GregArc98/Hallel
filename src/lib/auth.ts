@@ -62,13 +62,12 @@ export interface Contexto extends Vinculo {
 }
 
 /**
- * Exige login e cadastro numa igreja. Redireciona para /entrar ou /sem-acesso.
+ * Contexto da pessoa logada na igreja atual, ou null (sem login ou sem cadastro).
  * A igreja atual vem do cookie (se a pessoa estiver em mais de uma) ou é a primeira.
  */
-export const exigirIntegrante = cache(async (): Promise<Contexto> => {
+export const obterContexto = cache(async (): Promise<Contexto | null> => {
   const sessao = await getSessao();
-  if (!sessao) redirect("/entrar");
-  if (sessao.vinculos.length === 0) redirect("/sem-acesso");
+  if (!sessao || sessao.vinculos.length === 0) return null;
 
   const preferida = (await cookies()).get(COOKIE_IGREJA)?.value;
   const atual =
@@ -81,6 +80,13 @@ export const exigirIntegrante = cache(async (): Promise<Contexto> => {
     vinculos: sessao.vinculos,
   };
 });
+
+/** Exige login e cadastro numa igreja. Redireciona para /entrar ou /sem-acesso. */
+export async function exigirIntegrante(): Promise<Contexto> {
+  const ctx = await obterContexto();
+  if (ctx) return ctx;
+  redirect((await getSessao()) ? "/sem-acesso" : "/entrar");
+}
 
 /** Para telas e ações só de admin. */
 export async function exigirAdmin(): Promise<Contexto> {

@@ -149,11 +149,10 @@ select teste.checar(
 select teste.checar(
   (select repertorio_publicado_em is not null from public.culto where data = '2026-11-15'),
   'publicação registra a data');
-do $$ begin
-  delete from public.musica where titulo = 'Exaltai';
-  raise exception 'FALHOU: apagou música usada em culto';
-exception when foreign_key_violation then raise notice 'ok: música usada em culto não é apagada';
-end $$;
+delete from public.musica where titulo = 'Exaltai';
+select teste.checar(
+  (select count(*) = 5 from public.setlist_item where culto_id = (select id from public.culto where data = '2026-11-15')),
+  'excluir a música a tira também dos repertórios antigos');
 -- Reordenar o setlist numa transação (unique adiável)
 update public.setlist_item set ordem = 7 - ordem
   where culto_id = (select id from public.culto where data = '2026-11-15');
@@ -161,6 +160,11 @@ select teste.checar(
   (select m.titulo = 'Grande É o Senhor' from public.setlist_item s join public.musica m on m.id = s.musica_id
    where s.ordem = 1 and s.culto_id = (select id from public.culto where data = '2026-11-15')),
   'setlist pode ser reordenado');
+
+select teste.checar(
+  (select tem_cifra and not (select tem_cifra from public.musica where titulo = 'Exaltai')
+   from public.musica where titulo = 'Felicidade no Serviço'),
+  'tem_cifra indica quais músicas têm cifra');
 
 -- Funções auxiliares não ficam na API pública
 select teste.checar(

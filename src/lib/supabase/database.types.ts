@@ -331,6 +331,7 @@ export type Database = {
           letra: string | null
           observacoes: string | null
           tags: string[]
+          tem_cifra: boolean | null
           titulo: string
           tom_original: string | null
           youtube_url: string | null
@@ -352,6 +353,7 @@ export type Database = {
           letra?: string | null
           observacoes?: string | null
           tags?: string[]
+          tem_cifra?: boolean | null
           titulo: string
           tom_original?: string | null
           youtube_url?: string | null
@@ -373,6 +375,7 @@ export type Database = {
           letra?: string | null
           observacoes?: string | null
           tags?: string[]
+          tem_cifra?: boolean | null
           titulo?: string
           tom_original?: string | null
           youtube_url?: string | null

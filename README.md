@@ -49,11 +49,25 @@ Copie `.env.example` para `.env.local`. Na Vercel, cadastre as mesmas em
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → Data API | Banco e login |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project Settings → API Keys (`sb_publishable_…`) | Banco e login |
 | `NEXT_PUBLIC_LOGIN_GOOGLE` | `1` para mostrar "Entrar com Google" | Opcional |
-| `BLOB_READ_WRITE_TOKEN` | Vercel → Storage → Blob (etapa 4) | Upload dos áudios |
+| `BLOB_READ_WRITE_TOKEN` | Vercel → Storage → Blob (ver abaixo) | Upload dos áudios (opcional: sem ele, só links externos) |
 
 As chaves `NEXT_PUBLIC_*` são públicas por natureza (vão para o navegador); quem
 protege os dados são as regras de RLS do banco. **Nunca** coloque a chave
 `service_role`/secret no app.
+
+### Áudios (Vercel Blob)
+
+1. Na Vercel: **Storage → Create → Blob**, dê um nome (ex.: `hallel-audios`) e conecte ao
+   projeto. A Vercel cria a variável `BLOB_READ_WRITE_TOKEN` no projeto sozinha.
+2. Para testar no computador, copie o valor (Storage → seu store → `.env.local`) para o
+   seu `.env.local` e reinicie o `npm run dev`.
+
+Como funciona: o navegador envia o arquivo **direto** para o Blob (não passa pelo
+servidor); a rota `/api/audio/upload` só autoriza — apenas admins, apenas na pasta
+`audios/<igreja>/`, até 25 MB, tipos de áudio. Os arquivos são públicos com nome
+aleatório (impossível de adivinhar), o que permite tocar no `<audio>` e guardar offline.
+Trocar ou remover o áudio de uma música apaga o arquivo antigo. Todo o acesso ao
+provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e na rota.
 
 ## Banco de dados (Supabase)
 
@@ -65,6 +79,7 @@ protege os dados são as regras de RLS do banco. **Nunca** coloque a chave
 - **Login só para cadastrados:** a conta é ligada ao integrante automaticamente pelo
   e-mail confirmado (gatilhos no banco), nos dois sentidos — cadastrar antes ou depois
   do primeiro login funciona. Quem entra sem cadastro vê "Peça ao líder".
+- Excluir uma música (com confirmação) também a tira dos repertórios antigos em que apareceu.
 - Tipos TypeScript em `src/lib/supabase/database.types.ts` (gerados pelo Supabase;
   gere de novo após mudar o esquema).
 
@@ -102,12 +117,16 @@ src/
   components/ui/          componentes base no padrão shadcn/ui (Radix + Tailwind)
   components/chord-sheet/ visualizador de cifra (ChordSheet + SongViewer)
   app/(app)/              área logada (exige integrante cadastrado)
+  app/(app)/musicas/      acervo: lista/busca, página da música, criar/editar (Server Actions)
+  app/api/audio/upload/   autoriza o envio de áudio para o Vercel Blob
   app/entrar, app/auth/   login (link mágico / Google), retorno e saída
   hooks/                  preferências locais, tela sempre ligada, rolagem automática
   lib/auth.ts             sessão do usuário e igreja atual (Data Access Layer)
   lib/supabase/           clientes (servidor/navegador), proxy de sessão e tipos do banco
   proxy.ts                renova a sessão e manda quem não está logado para /entrar
   lib/music/              motor musical — isolado, sem dependências, 100% testado
+  lib/musicas/            regras do acervo: validação do formulário, busca, links de áudio
+  lib/storage/            armazenamento dos áudios (Vercel Blob)
   data/exemplos/          cifra real de exemplo (testes, demo e seed)
 supabase/                 migrações e seed
 scripts/                  gerador do seed e testes de banco
