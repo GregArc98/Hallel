@@ -81,6 +81,20 @@ const paraSalvar = serializeChordPro(song);             // vai para o banco
 const noTomDoCulto = transposeSongToKey(song, "E", "G"); // E → G, F#m → Am, E/G# → G/B
 ```
 
+### Decisões do motor
+
+- **Alinhamento por coluna.** No formato "acorde em cima", o acorde cai sobre o
+  caractere da mesma coluna. No Word com fonte proporcional (ex.: Century Gothic) o
+  alinhamento visual não bate com a contagem de caracteres — por isso o editor do app
+  usa fonte monoespaçada e sempre mostra a prévia antes de salvar.
+- **Seções** como `[Intro]`, `[Estrofe 1]`, `[Refrão]` são reconhecidas pelo nome (não
+  são confundidas com acordes) e mapeadas para tipos (`intro`, `verse`, `chorus`...).
+- **Grafia ♯/♭ automática:** tons F, Bb, Eb, Ab, Db (e Dm, Gm, Cm, Fm, Bbm, Ebm) usam
+  bemóis; os demais, sustenidos. F# é preferido a Gb. Transpor 0 semitons não muda nada.
+- **Diminuto** aceito como `°`, `º`, `o` ou `dim`.
+- Teste de referência com a cifra real de *Felicidade no Serviço*
+  (`src/lib/music/__fixtures__`).
+
 ## Visualizador de cifra (`src/components/chord-sheet`)
 
 - `ChordSheet` — renderiza a música já transposta: acorde em cima da sílaba, seções
@@ -96,17 +110,3 @@ const noTomDoCulto = transposeSongToKey(song, "E", "G"); // E → G, F#m → Am,
 > componentes de `components/ui` foram escritos no mesmo padrão (Radix + cva +
 > tailwind-merge) e o `components.json` permite usar `npx shadcn add` normalmente
 > em outra máquina.
-
-### Decisões do motor
-
-- **Alinhamento por coluna.** No formato "acorde em cima", o acorde cai sobre o
-  caractere da mesma coluna. No Word com fonte proporcional (ex.: Century Gothic) o
-  alinhamento visual não bate com a contagem de caracteres — por isso o editor do app
-  usa fonte monoespaçada e sempre mostra a prévia antes de salvar.
-- **Seções** como `[Intro]`, `[Estrofe 1]`, `[Refrão]` são reconhecidas pelo nome (não
-  são confundidas com acordes) e mapeadas para tipos (`intro`, `verse`, `chorus`...).
-- **Grafia ♯/♭ automática:** tons F, Bb, Eb, Ab, Db (e Dm, Gm, Cm, Fm, Bbm, Ebm) usam
-  bemóis; os demais, sustenidos. F# é preferido a Gb. Transpor 0 semitons não muda nada.
-- **Diminuto** aceito como `°`, `º`, `o` ou `dim`.
-- Teste de referência com a cifra real de *Felicidade no Serviço*
-  (`src/lib/music/__fixtures__`).
