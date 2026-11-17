@@ -19,6 +19,12 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
+Demonstração do visualizador de cifra (não precisa de banco): **/demo**.
+
+Para testar no celular durante o desenvolvimento, rode `npm run dev -- -H 0.0.0.0` e
+abra `http://IP-DO-COMPUTADOR:3000/demo` no celular (mesma rede Wi-Fi). Ou importe o
+repositório na Vercel: cada push gera um link de pré-visualização.
+
 | Comando | O que faz |
 |---|---|
 | `npm run dev` | Servidor de desenvolvimento |
@@ -43,9 +49,13 @@ Ainda nenhuma. Entram nas próximas etapas (um `.env.example` será adicionado):
 
 ```
 src/
-  app/              rotas (Next.js App Router)
-  lib/music/        motor musical — isolado, sem dependências, 100% testado
-docs/PLANO.md       decisões, modelo de dados, telas e etapas
+  app/                    rotas (Next.js App Router)
+  components/ui/          componentes base no padrão shadcn/ui (Radix + Tailwind)
+  components/chord-sheet/ visualizador de cifra (ChordSheet + SongViewer)
+  hooks/                  preferências locais, tela sempre ligada, rolagem automática
+  lib/music/              motor musical — isolado, sem dependências, 100% testado
+  data/exemplos/          cifra real de exemplo (testes, demo e seed)
+docs/PLANO.md             decisões, modelo de dados, telas e etapas
 ```
 
 ## Motor musical (`src/lib/music`)
@@ -70,6 +80,22 @@ const song = parseSongText(textoColadoDoWord);          // detecta o formato soz
 const paraSalvar = serializeChordPro(song);             // vai para o banco
 const noTomDoCulto = transposeSongToKey(song, "E", "G"); // E → G, F#m → Am, E/G# → G/B
 ```
+
+## Visualizador de cifra (`src/components/chord-sheet`)
+
+- `ChordSheet` — renderiza a música já transposta: acorde em cima da sílaba, seções
+  com rótulo e refrão destacado. Sem estado (serve no servidor e no cliente).
+  Em telas estreitas a linha quebra **entre palavras**, nunca separando o acorde da
+  sílaba (`layout.ts`, testado).
+- `SongViewer` — controles: Cifra/Letra, tom −/+ (com "voltar ao tom do culto"),
+  ♯ / Auto / ♭, tamanho da letra, rolagem automática (velocidade 1–10) e **modo
+  palco** (tela cheia, escuro, tela sempre ligada via Wake Lock; sai com ✕ ou Esc).
+- Tamanho da letra, ♯/♭ e velocidade ficam salvos no aparelho (`localStorage`).
+
+> O CLI do shadcn não alcança o registro neste ambiente de desenvolvimento; os
+> componentes de `components/ui` foram escritos no mesmo padrão (Radix + cva +
+> tailwind-merge) e o `components.json` permite usar `npx shadcn add` normalmente
+> em outra máquina.
 
 ### Decisões do motor
 

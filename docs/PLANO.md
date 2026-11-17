@@ -67,8 +67,8 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 |---|---|---|
 | 0 | Base: Next.js, Tailwind, Vitest, lint, CI | ✅ |
 | 1 | Motor musical (`src/lib/music`) com testes | ✅ |
-| 2 | Visualizador de cifra (sem banco) | ⏳ |
-| 3 | Supabase: schema, RLS, seed, auth | |
+| 2 | Visualizador de cifra (sem banco) — `/demo` | ✅ |
+| 3 | Supabase: schema, RLS, seed, auth | ⏳ |
 | 4 | Acervo de músicas + editor de cifra + áudio | |
 | 5 | Equipe e funções | |
 | 6 | Escala + indisponibilidade | |
