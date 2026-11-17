@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   isChordLine,
@@ -19,10 +17,7 @@ import {
   type Song,
 } from "..";
 
-const FELICIDADE = readFileSync(
-  join(__dirname, "../__fixtures__/felicidade-no-servico.txt"),
-  "utf8",
-);
+import { FELICIDADE_NO_SERVICO as FELICIDADE } from "@/data/exemplos/felicidade-no-servico";
 
 function allChords(song: Song): string[] {
   return song.sections.flatMap((s) =>
