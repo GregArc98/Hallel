@@ -21,7 +21,7 @@ npm run dev        # http://localhost:3000
 
 Demonstração do visualizador de cifra (não precisa de banco): **/demo**.
 
-Para testar no celular durante o desenvolvimento, rode `npm run dev -- -H 0.0.0.0` e
+Para testar no celular durante o desenvolvimento, rode `npm run dev` e
 abra `http://IP-DO-COMPUTADOR:3000/demo` no celular (mesma rede Wi-Fi). Ou importe o
 repositório na Vercel: cada push gera um link de pré-visualização.
 
