@@ -162,6 +162,11 @@ select teste.checar(
    where s.ordem = 1 and s.culto_id = (select id from public.culto where data = '2026-11-15')),
   'setlist pode ser reordenado');
 
+select teste.checar(
+  (select tem_cifra and not (select tem_cifra from public.musica where titulo = 'Exaltai')
+   from public.musica where titulo = 'Felicidade no Serviço'),
+  'tem_cifra indica quais músicas têm cifra');
+
 -- Funções auxiliares não ficam na API pública
 select teste.checar(
   not exists (
