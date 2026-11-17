@@ -149,11 +149,14 @@ select teste.checar(
 select teste.checar(
   (select repertorio_publicado_em is not null from public.culto where data = '2026-11-15'),
   'publicação registra a data');
-do $$ begin
-  delete from public.musica where titulo = 'Exaltai';
-  raise exception 'FALHOU: apagou música usada em culto';
-exception when foreign_key_violation then raise notice 'ok: música usada em culto não é apagada';
-end $$;
+update public.musica set arquivada = true where titulo = 'Quem Sou Eu';
+select teste.checar(
+  (select count(*) = 6 from public.setlist_item where culto_id = (select id from public.culto where data = '2026-11-15')),
+  'arquivar mantém a música no repertório antigo');
+delete from public.musica where titulo = 'Exaltai';
+select teste.checar(
+  (select count(*) = 5 from public.setlist_item where culto_id = (select id from public.culto where data = '2026-11-15')),
+  'excluir de vez tira a música também dos repertórios antigos');
 -- Reordenar o setlist numa transação (unique adiável)
 update public.setlist_item set ordem = 7 - ordem
   where culto_id = (select id from public.culto where data = '2026-11-15');
