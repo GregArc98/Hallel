@@ -18,6 +18,8 @@ Documento vivo com as decisões aprovadas. Atualize ao mudar o escopo.
 | Offline | Setlists dos próximos cultos do membro (cifras, letras, transposição) + botão "baixar áudios deste culto" |
 | Nomes | Tabelas/colunas de domínio em português sem acento; código genérico em inglês |
 | Supabase | Projeto em São Paulo (sa-east-1). Funções de permissão no schema `privado` (fora da API) |
+| Vercel | Projeto `hallel`, funções em `gru1` (São Paulo). Produção em hallel-three.vercel.app; PRs geram pré-visualização protegida |
+| Saída da equipe | "Ativo" desmarcado = afastado (não entra no app, não aparece para escalar). Remover apaga a pessoa e a tira das escalas |
 | Cache Components | Desativado: quase toda tela depende do usuário logado; simplicidade > ganho marginal |
 | Git | Uma branch por etapa (`etapa-N/...`), commits no padrão Conventional Commits, PR para `main` |
 
@@ -74,8 +76,8 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 2 | Visualizador de cifra (sem banco) — `/demo` | ✅ |
 | 3 | Supabase: schema, RLS, seed, auth | ✅ |
 | 4 | Acervo de músicas + editor de cifra + áudio | ✅ |
-| 5 | Equipe e funções | ⏳ |
-| 6 | Escala + indisponibilidade | |
+| 5 | Equipe e funções | ✅ |
+| 6 | Escala + indisponibilidade | ⏳ |
 | 7 | Repertório do culto | |
 | 8 | Início do membro + Modo culto | |
 | 9 | PWA + offline | |

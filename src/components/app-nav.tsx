@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Library } from "lucide-react";
+import { Home, Library, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const ITENS = [
   { href: "/", rotulo: "Início", icone: Home },
   { href: "/musicas", rotulo: "Músicas", icone: Library },
+  { href: "/equipe", rotulo: "Equipe", icone: Users },
 ] as const;
 
 function ativo(pathname: string, href: string) {

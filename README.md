@@ -10,6 +10,8 @@ cada culto.
 
 Plano, modelo de dados e decisões: [`docs/PLANO.md`](docs/PLANO.md).
 
+**Produção:** https://hallel-three.vercel.app
+
 ## Como rodar
 
 Requisitos: Node.js 20.9+ (recomendado 22).
@@ -69,6 +71,16 @@ aleatório (impossível de adivinhar), o que permite tocar no `<audio>` e guarda
 Trocar ou remover o áudio de uma música apaga o arquivo antigo. Todo o acesso ao
 provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e na rota.
 
+## Deploy (Vercel)
+
+- Projeto `hallel` (time gregarc98), ligado ao GitHub: **push na `main` → produção**;
+  cada PR ganha um link de pré-visualização (protegido por login da Vercel).
+- Funções em **São Paulo (`gru1`)**, perto do banco; Node 22.
+- Variáveis já cadastradas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+  `NEXT_PUBLIC_LOGIN_GOOGLE` e `BLOB_READ_WRITE_TOKEN` (store `hallel-audios`, em `gru1`).
+- No Supabase, a URL de produção precisa estar em *Authentication → URL Configuration*
+  (Site URL e Redirect URLs `https://hallel-three.vercel.app/**`).
+
 ## Banco de dados (Supabase)
 
 - Migrações em `supabase/migrations/` (aplicar em ordem). Seed em `supabase/seed.sql`
@@ -118,6 +130,7 @@ src/
   components/chord-sheet/ visualizador de cifra (ChordSheet + SongViewer)
   app/(app)/              área logada (exige integrante cadastrado)
   app/(app)/musicas/      acervo: lista/busca, página da música, criar/editar (Server Actions)
+  app/(app)/equipe/       equipe: lista, cadastro com grade função × manhã/noite, funções
   app/api/audio/upload/   autoriza o envio de áudio para o Vercel Blob
   app/entrar, app/auth/   login (link mágico / Google), retorno e saída
   hooks/                  preferências locais, tela sempre ligada, rolagem automática
@@ -126,6 +139,7 @@ src/
   proxy.ts                renova a sessão e manda quem não está logado para /entrar
   lib/music/              motor musical — isolado, sem dependências, 100% testado
   lib/musicas/            regras do acervo: validação do formulário, busca, links de áudio
+  lib/equipe/             regras da equipe: validação, grade de funções, consultas
   lib/storage/            armazenamento dos áudios (Vercel Blob)
   data/exemplos/          cifra real de exemplo (testes, demo e seed)
 supabase/                 migrações e seed
