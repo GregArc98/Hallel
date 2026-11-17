@@ -16,6 +16,9 @@ Documento vivo com as decisões aprovadas. Atualize ao mudar o escopo.
 | Cifras | Armazenadas em **ChordPro**. O usuário cola/edita no formato "acorde em cima da letra" e o app converte nos dois sentidos |
 | Offline | Setlists dos próximos cultos do membro (cifras, letras, transposição) + botão "baixar áudios deste culto" |
 | Nomes | Tabelas/colunas de domínio em português sem acento; código genérico em inglês |
+| Supabase | Projeto em São Paulo (sa-east-1). Funções de permissão no schema `privado` (fora da API) |
+| Cache Components | Desativado: quase toda tela depende do usuário logado; simplicidade > ganho marginal |
+| Git | Uma branch por etapa (`etapa-N/...`), commits no padrão Conventional Commits, PR para `main` |
 
 ## Modelo de dados
 
@@ -35,7 +38,7 @@ igreja ─┬─< integrante >── auth.users (usuario_id, preenchido no 1º l
 | integrante | igreja_id, usuario_id?, nome, email, telefone, papel (`admin`/`membro`), ativo |
 | funcao | igreja_id, nome, ordem, max_por_culto (Vocal = 3), modo_padrao (`cifra`/`letra`) |
 | integrante_funcao | integrante_id, funcao_id, periodo (`manha`/`noite`) — PK composta |
-| musica | titulo, artista, hinario_numero, hinario_sigla, tom_original, bpm, tags[], cifra (ChordPro), letra (só se não houver cifra), audio_url, audio_url_externo, youtube_url, busca (tsvector + unaccent) |
+| musica | titulo, artista, hinario_numero, hinario_sigla, tom_original, bpm, tags[], cifra (ChordPro), letra (gerada da cifra pelo app, ou digitada), audio_url, audio_url_externo, youtube_url, busca (texto sem acento + índice trigram) |
 | culto | data, periodo, tipo (`regular`/`avulso`), titulo, horario, observacoes, escala_publicada, repertorio_publicado, publicado_em |
 | escala_item | culto_id, funcao_id, integrante_id, posicao — único (culto, função, posição) |
 | setlist_item | culto_id, musica_id, ordem, tom, observacao |
@@ -68,8 +71,8 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 0 | Base: Next.js, Tailwind, Vitest, lint, CI | ✅ |
 | 1 | Motor musical (`src/lib/music`) com testes | ✅ |
 | 2 | Visualizador de cifra (sem banco) — `/demo` | ✅ |
-| 3 | Supabase: schema, RLS, seed, auth | ⏳ |
-| 4 | Acervo de músicas + editor de cifra + áudio | |
+| 3 | Supabase: schema, RLS, seed, auth | ✅ |
+| 4 | Acervo de músicas + editor de cifra + áudio | ⏳ |
 | 5 | Equipe e funções | |
 | 6 | Escala + indisponibilidade | |
 | 7 | Repertório do culto | |
