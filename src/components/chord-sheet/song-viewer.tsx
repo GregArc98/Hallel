@@ -335,7 +335,7 @@ export function SongViewer({
 
       <ChordSheet song={shown} mode={mode} fontSize={fontSize} />
 
-      <div className="fixed right-4 bottom-4 z-20 pb-[env(safe-area-inset-bottom)]">
+      <div className="fixed right-4 bottom-[calc(1rem+var(--nav-h,0px))] z-20 pb-[env(safe-area-inset-bottom)]">
         {scrollControls}
       </div>
     </div>
