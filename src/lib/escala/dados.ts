@@ -1,6 +1,7 @@
 import "server-only";
 
 import { carregarEquipe, carregarFuncoes } from "@/lib/equipe/dados";
+import { parseChordsOverLyrics, serializeChordPro } from "@/lib/music";
 import { createClient } from "@/lib/supabase/server";
 import { type Mes, primeiroEUltimoDia } from "./datas";
 import type { CultoParaAnalise, Indisponibilidade, Periodo } from "./regras";
@@ -141,4 +142,53 @@ export async function carregarRepertorio(cultoId: string): Promise<ItemRepertori
       temCifra: Boolean(i.musica!.tem_cifra),
       modoLetra: false,
     }));
+}
+
+export interface MusicaDoCulto {
+  musicaId: string;
+  titulo: string;
+  subtitulo: string | null;
+  tomOriginal: string | null;
+  tom: string | null;
+  observacao: string | null;
+  cifra: string | null;
+  letra: string | null;
+  audioUrl: string | null;
+  audioUrlExterno: string | null;
+  youtubeUrl: string | null;
+}
+
+/** Repertório com tudo o que o modo culto precisa (cifra, letra, áudio). */
+export async function carregarRepertorioCompleto(cultoId: string): Promise<MusicaDoCulto[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("setlist_item")
+    .select(
+      "ordem, tom, observacao, musica:musica!setlist_item_musica_id_igreja_id_fkey (id, titulo, artista, hinario_numero, hinario_sigla, tom_original, cifra, letra, audio_url, audio_url_externo, youtube_url)",
+    )
+    .eq("culto_id", cultoId)
+    .order("ordem");
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .filter((i) => i.musica)
+    .map((i) => {
+      const m = i.musica!;
+      return {
+        musicaId: m.id,
+        titulo: m.titulo,
+        subtitulo:
+          [m.hinario_numero ? `${m.hinario_sigla ?? "Hino"} ${m.hinario_numero}` : null, m.artista]
+            .filter(Boolean)
+            .join(" · ") || null,
+        tomOriginal: m.tom_original,
+        tom: i.tom,
+        observacao: i.observacao,
+        // Só letra: vira uma "cifra sem acordes" para ter palco, fonte e rolagem iguais.
+        cifra: m.cifra || (m.letra ? serializeChordPro(parseChordsOverLyrics(m.letra, { detectTitle: false })) : null),
+        letra: m.letra,
+        audioUrl: m.audio_url,
+        audioUrlExterno: m.audio_url_externo,
+        youtubeUrl: m.youtube_url,
+      };
+    });
 }

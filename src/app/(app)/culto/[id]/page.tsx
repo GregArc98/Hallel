@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, ListMusic, Pencil } from "lucide-react";
+import { ArrowLeft, ChevronRight, ListMusic, Pencil, Play } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -27,10 +27,6 @@ export default async function CultoPage({ params }: PageProps<"/culto/[id]">) {
   ]);
   const nome = new Map(equipe.map((m) => [m.id, m.nome]));
   const minhasFuncoes = culto.vagas.filter((v) => v.integranteId === ctx.integranteId).map((v) => v.funcaoId);
-  // Quem só canta abre a música no modo letra.
-  const soCanta =
-    minhasFuncoes.length > 0 &&
-    minhasFuncoes.every((f) => funcoes.find((x) => x.id === f)?.modo_padrao === "letra");
   const escalaVisivel = ctx.admin || culto.escalaPublicada;
   const repertorioVisivel = ctx.admin || culto.repertorioPublicado;
 
@@ -69,6 +65,13 @@ export default async function CultoPage({ params }: PageProps<"/culto/[id]">) {
             </Button>
           )}
         </div>
+        {repertorioVisivel && itens.length > 0 && (
+          <Button asChild size="lg" className="w-full sm:w-auto">
+            <Link href={`/culto/${id}/tocar`}>
+              <Play /> Modo culto
+            </Link>
+          </Button>
+        )}
         {ctx.admin && !culto.repertorioPublicado && (
           <p className="text-sm text-muted-foreground">Rascunho: só líderes veem.</p>
         )}
@@ -80,12 +83,9 @@ export default async function CultoPage({ params }: PageProps<"/culto/[id]">) {
           <ol className="divide-y rounded-xl border">
             {itens.map((item, i) => {
               const tom = tomDoCulto(item.tom, item.tomOriginal);
-              const qs = new URLSearchParams({ culto: id });
-              if (tom) qs.set("tom", tom);
-              if (soCanta) qs.set("modo", "letra");
               return (
                 <li key={`${item.musicaId}-${i}`}>
-                  <Link href={`/musicas/${item.musicaId}?${qs}`} className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50">
+                  <Link href={`/culto/${id}/tocar?i=${i}`} className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50">
                     <span className="w-6 text-center font-bold text-muted-foreground">{i + 1}</span>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">{item.titulo}</p>

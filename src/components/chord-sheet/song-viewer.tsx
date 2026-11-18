@@ -47,6 +47,9 @@ export interface SongViewerProps {
   /** Rótulo do tom inicial, ex.: "Tom do culto". */
   initialKeyLabel?: string;
   defaultMode?: SheetMode;
+  /** Começa no modo palco (o modo culto mantém o palco ao trocar de música). */
+  palcoInicial?: boolean;
+  onPalcoChange?: (ativo: boolean) => void;
   /** Conteúdo extra abaixo dos controles (ex.: player de áudio). */
   children?: ReactNode;
 }
@@ -70,6 +73,8 @@ export function SongViewer({
   initialKey,
   initialKeyLabel = "Tom do culto",
   defaultMode = "cifra",
+  palcoInicial = false,
+  onPalcoChange,
   children,
 }: SongViewerProps) {
   const initialOffset =
@@ -81,7 +86,7 @@ export function SongViewer({
   const [fontSize, setFontSize] = usePreference<number>("cifra.fonte", 18);
   const [stageFontSize, setStageFontSize] = usePreference<number>("cifra.fontePalco", 24);
   const [speed, setSpeed] = usePreference<number>("cifra.rolagem", 4);
-  const [stage, setStage] = useState(false);
+  const [stage, setStage] = useState(palcoInicial);
   const [scrolling, setScrolling] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const enteredFullscreen = useRef(false);
@@ -111,6 +116,7 @@ export function SongViewer({
   const enterStage = () => {
     setScrolling(false);
     setStage(true);
+    onPalcoChange?.(true);
     const el = document.documentElement;
     if (el.requestFullscreen && !document.fullscreenElement) {
       el.requestFullscreen()
@@ -124,9 +130,10 @@ export function SongViewer({
   const exitStage = useCallback(() => {
     setScrolling(false);
     setStage(false);
+    onPalcoChange?.(false);
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
     enteredFullscreen.current = false;
-  }, []);
+  }, [onPalcoChange]);
 
   // No palco: trava a rolagem da página de trás, fecha com Esc ou ao sair da tela cheia.
   useEffect(() => {
