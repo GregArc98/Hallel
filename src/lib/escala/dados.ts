@@ -10,10 +10,14 @@ export interface Culto extends CultoParaAnalise {
   titulo: string | null;
   horario: string | null;
   escalaPublicada: boolean;
+  repertorioPublicado: boolean;
+  observacoes: string | null;
+  /** Quantas músicas no repertório (membros: só conta se publicado). */
+  musicas: number;
 }
 
 const SELECT_CULTO =
-  "id, data, periodo, tipo, titulo, horario, escala_publicada, escala_item!escala_item_culto_id_igreja_id_fkey (funcao_id, posicao, integrante_id)";
+  "id, data, periodo, tipo, titulo, horario, observacoes, escala_publicada, repertorio_publicado, escala_item!escala_item_culto_id_igreja_id_fkey (funcao_id, posicao, integrante_id), setlist_item!setlist_item_culto_id_igreja_id_fkey (count)";
 
 type LinhaCulto = {
   id: string;
@@ -23,6 +27,9 @@ type LinhaCulto = {
   titulo: string | null;
   horario: string | null;
   escala_publicada: boolean;
+  repertorio_publicado: boolean;
+  observacoes: string | null;
+  setlist_item: Array<{ count: number }>;
   escala_item: Array<{ funcao_id: string; posicao: number; integrante_id: string }>;
 };
 
@@ -35,6 +42,9 @@ function paraCulto(l: LinhaCulto): Culto {
     titulo: l.titulo,
     horario: l.horario?.slice(0, 5) ?? null,
     escalaPublicada: l.escala_publicada,
+    repertorioPublicado: l.repertorio_publicado,
+    observacoes: l.observacoes,
+    musicas: l.setlist_item[0]?.count ?? 0,
     vagas: l.escala_item.map((v) => ({
       funcaoId: v.funcao_id,
       posicao: v.posicao,
@@ -97,4 +107,38 @@ export async function carregarMes(igrejaId: string, mes: Mes) {
     carregarIndisponibilidades(igrejaId, de, ate),
   ]);
   return { cultos, funcoes, equipe, indisponibilidades };
+}
+
+export interface ItemRepertorio {
+  musicaId: string;
+  titulo: string;
+  tomOriginal: string | null;
+  tom: string | null;
+  observacao: string | null;
+  temCifra: boolean;
+  modoLetra: boolean;
+}
+
+/** Repertório do culto em ordem. RLS: membros só recebem se publicado. */
+export async function carregarRepertorio(cultoId: string): Promise<ItemRepertorio[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("setlist_item")
+    .select(
+      "ordem, tom, observacao, musica:musica!setlist_item_musica_id_igreja_id_fkey (id, titulo, tom_original, tem_cifra)",
+    )
+    .eq("culto_id", cultoId)
+    .order("ordem");
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .filter((i) => i.musica)
+    .map((i) => ({
+      musicaId: i.musica!.id,
+      titulo: i.musica!.titulo,
+      tomOriginal: i.musica!.tom_original,
+      tom: i.tom,
+      observacao: i.observacao,
+      temCifra: Boolean(i.musica!.tem_cifra),
+      modoLetra: false,
+    }));
 }

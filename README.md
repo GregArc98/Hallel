@@ -132,6 +132,8 @@ src/
   app/(app)/musicas/      acervo: lista/busca, página da música, criar/editar (Server Actions)
   app/(app)/equipe/       equipe: lista, cadastro com grade função × manhã/noite, funções
   app/(app)/escala/       escala do mês, editor por culto, culto avulso, publicação
+  app/(app)/escala/[id]/repertorio/  montar o repertório (arrastar, tom, observações, publicar)
+  app/(app)/culto/[id]/   página do culto: repertório no tom do culto + escala
   app/(app)/disponibilidade/  "não posso" do próprio membro
   app/api/audio/upload/   autoriza o envio de áudio para o Vercel Blob
   app/entrar, app/auth/   login (link mágico / Google), retorno e saída
