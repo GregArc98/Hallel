@@ -1,6 +1,7 @@
 import { CalendarDays, ChevronRight, Library, Play, UserX } from "lucide-react";
 import Link from "next/link";
 
+import { SalvarOffline } from "@/components/pwa/salvar-offline";
 import { Button } from "@/components/ui/button";
 import { exigirIntegrante } from "@/lib/auth";
 import { carregarFuncoes } from "@/lib/equipe/dados";
@@ -29,6 +30,12 @@ export default async function InicioPage() {
   const proxima = escalas[0];
   const repertorio = proxima && proxima.culto.repertorioPublicado ? await carregarRepertorio(proxima.culto.id) : [];
   const alertas = ctx.admin ? pendencias(cultos.filter((c) => c.data <= somarDias(hojeStr, 28)), funcoes, hojeStr) : [];
+
+  // Páginas que ficam salvas no aparelho para abrir sem internet.
+  const paraOffline = [
+    "/",
+    ...escalas.slice(0, 3).flatMap(({ culto }) => [`/culto/${culto.id}`, `/culto/${culto.id}/tocar`]),
+  ];
 
   return (
     <div className="space-y-6">
@@ -82,6 +89,7 @@ export default async function InicioPage() {
           <Link href={`/culto/${proxima.culto.id}`} className="inline-block text-sm text-primary underline-offset-4 hover:underline">
             Ver escala completa deste culto
           </Link>
+          <SalvarOffline urls={paraOffline} />
         </section>
       ) : (
         <section className="rounded-2xl border border-dashed p-4 text-muted-foreground">

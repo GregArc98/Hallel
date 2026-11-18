@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { caminhoSeguro, getSessao } from "@/lib/auth";
 import { LOGIN_GOOGLE } from "@/lib/env";
+import { LimparAoSair } from "@/components/pwa/limpar-ao-sair";
 import { FormularioEntrar } from "./formulario-entrar";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -31,6 +32,7 @@ export default async function EntrarPage({ searchParams }: PageProps<"/entrar">)
         </p>
       )}
       <FormularioEntrar proximo={proximo} google={LOGIN_GOOGLE} />
+      {params.saiu === "1" && <LimparAoSair />}
     </main>
   );
 }

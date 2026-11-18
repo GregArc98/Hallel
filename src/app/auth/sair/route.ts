@@ -5,5 +5,5 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  return NextResponse.redirect(new URL("/entrar", request.url), { status: 303 });
+  return NextResponse.redirect(new URL("/entrar?saiu=1", request.url), { status: 303 });
 }
