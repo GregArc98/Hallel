@@ -134,6 +134,7 @@ src/
   app/(app)/escala/       escala do mês, editor por culto, culto avulso, publicação
   app/(app)/escala/[id]/repertorio/  montar o repertório (arrastar, tom, observações, publicar)
   app/(app)/culto/[id]/   página do culto: repertório no tom do culto + escala
+  app/(app)/culto/[id]/tocar/  modo culto: uma música por vez, ‹ › ou arrastar para o lado
   app/(app)/disponibilidade/  "não posso" do próprio membro
   app/api/audio/upload/   autoriza o envio de áudio para o Vercel Blob
   app/entrar, app/auth/   login (link mágico / Google), retorno e saída
@@ -144,6 +145,7 @@ src/
   lib/music/              motor musical — isolado, sem dependências, 100% testado
   lib/musicas/            regras do acervo: validação do formulário, busca, links de áudio
   lib/equipe/             regras da equipe: validação, grade de funções, consultas
+  lib/inicio/             minhas próximas escalas e pendências do líder
   lib/escala/             datas (pt-BR, fuso de São Paulo), vagas, alertas e consultas da escala
   lib/storage/            armazenamento dos áudios (Vercel Blob)
   data/exemplos/          cifra real de exemplo (testes, demo e seed)
