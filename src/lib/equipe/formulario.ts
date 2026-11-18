@@ -98,3 +98,13 @@ export const esquemaFuncao = z.object({
     .max(10, "Máximo 10"),
   modo_padrao: z.enum(["cifra", "letra"]),
 });
+
+/** "hoje", "ontem", "há 5 dias", "há 2 meses" — para o último acesso. */
+export function tempoDesde(iso: string, agora = new Date()): string {
+  const dias = Math.floor((agora.getTime() - new Date(iso).getTime()) / 86_400_000);
+  if (dias <= 0) return "hoje";
+  if (dias === 1) return "ontem";
+  if (dias < 30) return `há ${dias} dias`;
+  const meses = Math.floor(dias / 30);
+  return meses === 1 ? "há 1 mês" : `há ${meses} meses`;
+}

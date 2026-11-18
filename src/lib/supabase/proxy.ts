@@ -5,7 +5,7 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
 import type { Database } from "./database.types";
 
 /** Rotas abertas (sem login). */
-const ROTAS_PUBLICAS = ["/entrar", "/auth", "/demo", "/offline"];
+const ROTAS_PUBLICAS = ["/entrar", "/auth", "/demo", "/offline", "/convite"];
 
 function ehPublica(pathname: string) {
   return ROTAS_PUBLICAS.some((r) => pathname === r || pathname.startsWith(`${r}/`));

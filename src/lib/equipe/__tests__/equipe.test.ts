@@ -7,6 +7,7 @@ import {
   lerFuncoesMarcadas,
   mensagemErroIntegrante,
   prepararIntegrante,
+  tempoDesde,
 } from "../formulario";
 
 const BATERIA = "5a992a38-2b98-5ade-a093-1e61905f0ca4";
@@ -74,5 +75,15 @@ describe("esquemaFuncao", () => {
     expect(esquemaFuncao.safeParse({ nome: "Violão", max_por_culto: "2", modo_padrao: "cifra" }).success).toBe(true);
     expect(esquemaFuncao.safeParse({ nome: "Violão", max_por_culto: "0", modo_padrao: "cifra" }).success).toBe(false);
     expect(esquemaFuncao.safeParse({ nome: "", max_por_culto: "1", modo_padrao: "letra" }).success).toBe(false);
+  });
+});
+
+describe("tempoDesde", () => {
+  const agora = new Date("2026-11-20T15:00:00Z");
+  it("descreve o último acesso", () => {
+    expect(tempoDesde("2026-11-20T08:00:00Z", agora)).toBe("hoje");
+    expect(tempoDesde("2026-11-19T10:00:00Z", agora)).toBe("ontem");
+    expect(tempoDesde("2026-11-12T10:00:00Z", agora)).toBe("há 8 dias");
+    expect(tempoDesde("2026-09-01T10:00:00Z", agora)).toBe("há 2 meses");
   });
 });
