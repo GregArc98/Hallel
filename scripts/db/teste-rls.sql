@@ -166,6 +166,33 @@ select teste.checar(
    from public.musica where titulo = 'Felicidade no Serviço'),
   'tem_cifra indica quais músicas têm cifra');
 
+-- salvar_repertorio: admin salva tudo de uma vez; membro não consegue
+select teste.como('lider@exemplo.com');
+select public.salvar_repertorio(
+  (select id from public.culto where data = '2026-11-22'),
+  jsonb_build_array(
+    jsonb_build_object('musica_id', (select id from public.musica where titulo = 'Grande É o Senhor'), 'tom', 'A', 'observacao', 'só piano no início'),
+    jsonb_build_object('musica_id', (select id from public.musica where titulo = 'Felicidade no Serviço'), 'tom', '')
+  ),
+  '  Ceia no final  ');
+reset role;
+select teste.checar(
+  (select string_agg(m.titulo || ':' || coalesce(s.tom, '-'), ', ' order by s.ordem)
+   from public.setlist_item s join public.musica m on m.id = s.musica_id
+   where s.culto_id = (select id from public.culto where data = '2026-11-22'))
+  = 'Grande É o Senhor:A, Felicidade no Serviço:-',
+  'salvar_repertorio grava ordem e tom');
+select teste.checar(
+  (select observacoes = 'Ceia no final' from public.culto where data = '2026-11-22'),
+  'salvar_repertorio grava observações gerais');
+select teste.como('breno@exemplo.com');
+do $$ begin
+  perform public.salvar_repertorio((select id from public.culto where data = '2026-11-22'), '[]'::jsonb, '');
+  raise exception 'FALHOU: membro alterou repertório';
+exception when insufficient_privilege then raise notice 'ok: membro não altera repertório';
+end $$;
+reset role;
+
 -- Funções auxiliares não ficam na API pública
 select teste.checar(
   not exists (

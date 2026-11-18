@@ -443,6 +443,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      salvar_repertorio: {
+        Args: { p_culto: string; p_itens: Json; p_observacoes: string }
+        Returns: undefined
+      }
       sem_acento: { Args: { texto: string }; Returns: string }
     }
     Enums: {
