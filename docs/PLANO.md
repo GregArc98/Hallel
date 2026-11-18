@@ -20,6 +20,7 @@ Documento vivo com as decisões aprovadas. Atualize ao mudar o escopo.
 | Supabase | Projeto em São Paulo (sa-east-1). Funções de permissão no schema `privado` (fora da API) |
 | Vercel | Projeto `hallel`, funções em `gru1` (São Paulo). Produção em hallel-three.vercel.app; PRs geram pré-visualização protegida |
 | Escala | Rascunho até publicar (por culto ou o mês todo). Sugestões: quem exerce a função no período, ordenado por menos escalas no mês; "Outros da equipe" para exceções. Alertas não bloqueiam |
+| Repertório | Salvo de uma vez pela função `salvar_repertorio` (transação única). Tom vazio = tom original. Quem só canta (funções "abre na letra") abre as músicas no modo letra |
 | Datas | Strings AAAA-MM-DD (datas civis) e "hoje" no fuso de São Paulo |
 | Saída da equipe | "Ativo" desmarcado = afastado (não entra no app, não aparece para escalar). Remover apaga a pessoa e a tira das escalas |
 | Cache Components | Desativado: quase toda tela depende do usuário logado; simplicidade > ganho marginal |
@@ -80,7 +81,7 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 4 | Acervo de músicas + editor de cifra + áudio | ✅ |
 | 5 | Equipe e funções | ✅ |
 | 6 | Escala + indisponibilidade | ✅ |
-| 7 | Repertório do culto | ⏳ |
-| 8 | Início do membro + Modo culto | |
+| 7 | Repertório do culto | ✅ |
+| 8 | Início do membro + Modo culto | ⏳ |
 | 9 | PWA + offline | |
 | 10 | Polimento + deploy | |
