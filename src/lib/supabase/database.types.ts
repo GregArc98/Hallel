@@ -16,6 +16,20 @@ export type Database = {
   }
   public: {
     Tables: {
+      acesso_integrante: {
+        Row: { igreja_id: string; integrante_id: string; ultimo_em: string }
+        Insert: { igreja_id: string; integrante_id: string; ultimo_em?: string }
+        Update: { igreja_id?: string; integrante_id?: string; ultimo_em?: string }
+        Relationships: [
+          {
+            foreignKeyName: "acesso_integrante_integrante_id_igreja_id_fkey"
+            columns: ["integrante_id", "igreja_id"]
+            isOneToOne: true
+            referencedRelation: "integrante"
+            referencedColumns: ["id", "igreja_id"]
+          },
+        ]
+      }
       culto: {
         Row: {
           atualizado_em: string
@@ -168,6 +182,8 @@ export type Database = {
       igreja: {
         Row: {
           atualizado_em: string
+          codigo_convite: string
+          convite_ativo: boolean
           criado_em: string
           fuso_horario: string
           id: string
@@ -176,6 +192,8 @@ export type Database = {
         }
         Insert: {
           atualizado_em?: string
+          codigo_convite?: string
+          convite_ativo?: boolean
           criado_em?: string
           fuso_horario?: string
           id?: string
@@ -184,6 +202,8 @@ export type Database = {
         }
         Update: {
           atualizado_em?: string
+          codigo_convite?: string
+          convite_ativo?: boolean
           criado_em?: string
           fuso_horario?: string
           id?: string
@@ -232,6 +252,7 @@ export type Database = {
       }
       integrante: {
         Row: {
+          aprovado: boolean
           ativo: boolean
           atualizado_em: string
           criado_em: string
@@ -244,6 +265,7 @@ export type Database = {
           usuario_id: string | null
         }
         Insert: {
+          aprovado?: boolean
           ativo?: boolean
           atualizado_em?: string
           criado_em?: string
@@ -256,6 +278,7 @@ export type Database = {
           usuario_id?: string | null
         }
         Update: {
+          aprovado?: boolean
           ativo?: boolean
           atualizado_em?: string
           criado_em?: string
@@ -443,6 +466,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      atualizar_meu_perfil: {
+        Args: { p_igreja: string; p_nome: string; p_telefone: string }
+        Returns: undefined
+      }
+      entrar_na_equipe: {
+        Args: { p_codigo: string; p_nome: string; p_telefone: string }
+        Returns: string
+      }
+      igreja_do_convite: { Args: { p_codigo: string }; Returns: string }
+      registrar_acesso: { Args: { p_igreja: string }; Returns: undefined }
+      renovar_convite: { Args: { p_igreja: string }; Returns: string }
       salvar_repertorio: {
         Args: { p_culto: string; p_itens: Json; p_observacoes: string }
         Returns: undefined

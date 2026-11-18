@@ -193,12 +193,74 @@ exception when insufficient_privilege then raise notice 'ok: membro não altera 
 end $$;
 reset role;
 
+-- Cadastro pela própria pessoa (link da equipe)
+insert into auth.users (email, email_confirmed_at) values ('nova@exemplo.com', now());
+insert into auth.users (email, email_confirmed_at) values ('grazi@exemplo.com', now());
+update public.integrante set email = 'grazi@exemplo.com' where nome = 'Grazi' and usuario_id is null;
+update public.integrante set usuario_id = null where nome = 'Grazi'; -- simula cadastro feito antes do 1º login
+select codigo_convite as codigo from public.igreja where slug = 'louvor' \gset
+select teste.anonimo();
+select teste.checar(
+  public.igreja_do_convite(:'codigo') = 'Ministério de Louvor',
+  'visitante vê o nome da igreja de um convite válido');
+select teste.checar(public.igreja_do_convite('errado') is null, 'convite inválido não revela nada');
+reset role;
+select teste.como('nova@exemplo.com');
+do $$ begin
+  perform public.entrar_na_equipe('errado', 'Nova', '');
+  raise exception 'FALHOU: entrou com convite inválido';
+exception when no_data_found then raise notice 'ok: convite inválido é recusado';
+end $$;
+select teste.checar(
+  public.entrar_na_equipe(:'codigo', ' Nova Pessoa ', '(11) 90000-0000') = 'pendente',
+  'quem entra pelo link fica pendente');
+select teste.checar((select count(*) = 1 from public.integrante where usuario_id = (select auth.uid())), 'pendente vê o próprio cadastro');
+select teste.checar((select count(*) = 0 from public.musica), 'pendente não vê o acervo');
+select public.atualizar_meu_perfil(
+  (select igreja_id from public.integrante where usuario_id = (select auth.uid())), 'Nova P.', '(11) 98888-0000');
+reset role;
+select teste.checar(
+  (select nome = 'Nova P.' and telefone = '(11) 98888-0000' and email = 'nova@exemplo.com' and not aprovado and not ativo
+   from public.integrante where email = 'nova@exemplo.com'),
+  'perfil pendente com nome, e-mail do login e WhatsApp');
+select teste.como('grazi@exemplo.com');
+select teste.checar(
+  public.entrar_na_equipe(:'codigo', 'Grazi R', '') = 'aprovado',
+  'quem o líder já cadastrou pelo e-mail entra direto, sem nova aprovação');
+select teste.checar((select count(*) = 5 from public.musica), 'cadastro do líder ligado pelo link já vê o acervo');
+reset role;
+-- aprovar (como líder) libera o acesso
+select teste.como('lider@exemplo.com');
+update public.integrante set aprovado = true, ativo = true where email = 'nova@exemplo.com';
+select public.registrar_acesso((select id from public.igreja where slug = 'louvor'));
+select teste.checar((select count(*) = 1 from public.acesso_integrante), 'líder vê o último acesso');
+reset role;
+select teste.como('nova@exemplo.com');
+select teste.checar((select count(*) = 5 from public.musica), 'depois de aprovado vê o acervo');
+select public.registrar_acesso((select igreja_id from public.integrante where usuario_id = (select auth.uid())));
+select teste.checar((select count(*) = 0 from public.acesso_integrante), 'membro não vê o último acesso de ninguém');
+do $$ begin
+  update public.integrante set papel = 'admin' where usuario_id = (select auth.uid());
+  if exists (select 1 from public.integrante where usuario_id = (select auth.uid()) and papel = 'admin') then
+    raise exception 'FALHOU: membro se promoveu';
+  end if;
+  raise notice 'ok: membro não muda o próprio papel';
+end $$;
+do $$ begin
+  perform public.renovar_convite((select igreja_id from public.integrante where usuario_id = (select auth.uid())));
+  raise exception 'FALHOU: membro renovou o convite';
+exception when insufficient_privilege then raise notice 'ok: só líder renova o convite';
+end $$;
+reset role;
+select teste.checar((select count(*) = 2 from public.acesso_integrante), 'acessos registrados para líder e membro');
+
 -- Funções auxiliares não ficam na API pública
 select teste.checar(
   not exists (
     select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prosecdef
+      and p.proname not in ('igreja_do_convite', 'entrar_na_equipe', 'atualizar_meu_perfil', 'registrar_acesso', 'renovar_convite')
   ),
-  'nenhuma função security definer no schema público');
+  'só as funções de convite/perfil/acesso são security definer na API (intencional)');
 
 \echo 'TODOS OS TESTES DE BANCO PASSARAM'

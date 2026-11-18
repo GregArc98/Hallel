@@ -23,7 +23,10 @@ export interface Vinculo {
 
 export interface Sessao {
   usuario: { id: string; email: string | null };
+  /** Igrejas em que a pessoa é integrante aprovado e ativo. */
   vinculos: Vinculo[];
+  /** Cadastros feitos pelo link da equipe, ainda aguardando o líder. */
+  pendentes: Array<{ nome: string; igreja: string }>;
 }
 
 /** Usuário logado e seus vínculos com igrejas (null se não logado). Uma vez por requisição. */
@@ -35,16 +38,18 @@ export const getSessao = cache(async (): Promise<Sessao | null> => {
 
   const { data: linhas, error } = await supabase
     .from("integrante")
-    .select("id, nome, papel, igreja:igreja!integrante_igreja_id_fkey (id, nome, slug)")
+    .select("id, nome, papel, ativo, aprovado, igreja:igreja!integrante_igreja_id_fkey (id, nome, slug)")
     .eq("usuario_id", claims.sub)
-    .eq("ativo", true)
     .order("criado_em");
   if (error) throw new Error(`Falha ao carregar o cadastro: ${error.message}`);
 
   return {
     usuario: { id: claims.sub, email: typeof claims.email === "string" ? claims.email : null },
+    pendentes: (linhas ?? [])
+      .filter((l) => !l.aprovado)
+      .map((l) => ({ nome: l.nome, igreja: l.igreja?.nome ?? "" })),
     vinculos: (linhas ?? [])
-      .filter((l) => l.igreja)
+      .filter((l) => l.igreja && l.ativo && l.aprovado)
       .map((l) => ({
         integranteId: l.id,
         nome: l.nome,
@@ -85,7 +90,9 @@ export const obterContexto = cache(async (): Promise<Contexto | null> => {
 export async function exigirIntegrante(): Promise<Contexto> {
   const ctx = await obterContexto();
   if (ctx) return ctx;
-  redirect((await getSessao()) ? "/sem-acesso" : "/entrar");
+  const sessao = await getSessao();
+  if (!sessao) redirect("/entrar");
+  redirect(sessao.pendentes.length > 0 ? "/aguardando" : "/sem-acesso");
 }
 
 /** Para telas e ações só de admin. */

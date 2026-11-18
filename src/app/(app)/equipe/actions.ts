@@ -27,12 +27,14 @@ export async function salvarIntegrante(
   const ctx = await exigirAdmin();
   const id = String(formData.get("id") ?? "") || null;
 
+  const aprovar = formData.get("aprovar") === "1";
   const preparo = prepararIntegrante({
     nome: String(formData.get("nome") ?? ""),
     email: String(formData.get("email") ?? ""),
     telefone: String(formData.get("telefone") ?? ""),
     papel: String(formData.get("papel") ?? ""),
-    ativo: formData.get("ativo") === "on",
+    // Aprovar um cadastro novo já libera o acesso.
+    ativo: aprovar || formData.get("ativo") === "on",
   });
   if (!preparo.ok) return { erro: "Confira os campos destacados.", erros: preparo.erros };
 
@@ -46,7 +48,7 @@ export async function salvarIntegrante(
   if (id) {
     const { error } = await supabase
       .from("integrante")
-      .update(preparo.dados)
+      .update(aprovar ? { ...preparo.dados, aprovado: true } : preparo.dados)
       .eq("id", id)
       .eq("igreja_id", ctx.igreja.id);
     if (error) return { erro: mensagemErroIntegrante(error) };
@@ -184,4 +186,35 @@ export async function moverFuncao(formData: FormData): Promise<void> {
     }
   }
   voltarFuncoes();
+}
+
+// ---------------------------------------------------------------------------
+// Link de convite da equipe
+// ---------------------------------------------------------------------------
+
+export async function renovarConvite(): Promise<void> {
+  const ctx = await exigirAdmin();
+  const supabase = await createClient();
+  await supabase.rpc("renovar_convite", { p_igreja: ctx.igreja.id });
+  revalidatePath("/equipe");
+  redirect("/equipe#convite");
+}
+
+export async function alternarConvite(formData: FormData): Promise<void> {
+  const ctx = await exigirAdmin();
+  const ativo = formData.get("ativo") === "1";
+  const supabase = await createClient();
+  await supabase.from("igreja").update({ convite_ativo: ativo }).eq("id", ctx.igreja.id);
+  revalidatePath("/equipe");
+  redirect("/equipe#convite");
+}
+
+/** Recusa um cadastro feito pelo link (apaga o perfil pendente). */
+export async function recusarCadastro(formData: FormData): Promise<void> {
+  const ctx = await exigirAdmin();
+  const id = String(formData.get("id") ?? "");
+  const supabase = await createClient();
+  await supabase.from("integrante").delete().eq("id", id).eq("igreja_id", ctx.igreja.id).eq("aprovado", false);
+  revalidatePath("/equipe");
+  redirect("/equipe");
 }

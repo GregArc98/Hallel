@@ -3,10 +3,14 @@ import Link from "next/link";
 import { NavInferior, NavTopo } from "@/components/app-nav";
 import { AvisoOffline } from "@/components/pwa/aviso-offline";
 import { exigirIntegrante } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 /** Área logada: exige integrante cadastrado. */
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const ctx = await exigirIntegrante();
+  // Último acesso (só líderes veem). O banco grava no máximo uma vez por hora.
+  const supabase = await createClient();
+  await supabase.rpc("registrar_acesso", { p_igreja: ctx.igreja.id });
 
   return (
     // --nav-h: altura da barra inferior no celular (elementos flutuantes ficam acima dela).

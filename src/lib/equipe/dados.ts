@@ -19,7 +19,10 @@ export interface MembroEquipe {
   telefone: string | null;
   papel: Enums<"papel">;
   ativo: boolean;
+  /** false = cadastrou-se pelo link e aguarda aprovação. */
+  aprovado: boolean;
   entrouNoApp: boolean;
+  criadoEm: string;
   funcoes: Array<{ funcaoId: string; periodo: Periodo }>;
 }
 
@@ -40,7 +43,7 @@ export async function carregarEquipe(igrejaId: string, apenasId?: string): Promi
   let consulta = supabase
     .from("integrante")
     .select(
-      "id, nome, email, telefone, papel, ativo, usuario_id, integrante_funcao!integrante_funcao_integrante_id_igreja_id_fkey (funcao_id, periodo)",
+      "id, nome, email, telefone, papel, ativo, aprovado, usuario_id, criado_em, integrante_funcao!integrante_funcao_integrante_id_igreja_id_fkey (funcao_id, periodo)",
     )
     .eq("igreja_id", igrejaId)
     .order("nome");
@@ -54,7 +57,9 @@ export async function carregarEquipe(igrejaId: string, apenasId?: string): Promi
     telefone: i.telefone,
     papel: i.papel,
     ativo: i.ativo,
+    aprovado: i.aprovado,
     entrouNoApp: i.usuario_id !== null,
+    criadoEm: i.criado_em,
     funcoes: i.integrante_funcao.map((f) => ({ funcaoId: f.funcao_id, periodo: f.periodo })),
   }));
 }
@@ -68,3 +73,11 @@ export function resumoFuncoes(membro: MembroEquipe, funcoes: Funcao[]): string[]
     return [`${f.nome} (${periodos[0] === "manha" ? "manhã" : "noite"})`];
   });
 }
+
+/** Último acesso de cada integrante (RLS: só líderes recebem dados). */
+export async function carregarUltimosAcessos(igrejaId: string): Promise<Map<string, string>> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("acesso_integrante").select("integrante_id, ultimo_em").eq("igreja_id", igrejaId);
+  return new Map((data ?? []).map((a) => [a.integrante_id, a.ultimo_em]));
+}
+
