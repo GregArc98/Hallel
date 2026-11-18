@@ -82,6 +82,6 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 5 | Equipe e funções | ✅ |
 | 6 | Escala + indisponibilidade | ✅ |
 | 7 | Repertório do culto | ✅ |
-| 8 | Início do membro + Modo culto | ⏳ |
-| 9 | PWA + offline | |
+| 8 | Início do membro + Modo culto | ✅ |
+| 9 | PWA + offline | ⏳ |
 | 10 | Polimento + deploy | |
