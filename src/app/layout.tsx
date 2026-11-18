@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { RegistrarSW } from "@/components/pwa/registrar-sw";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,6 +18,8 @@ export const metadata: Metadata = {
   title: { default: "Hallel", template: "%s · Hallel" },
   description: "Escalas, repertório e cifras do ministério de louvor.",
   applicationName: "Hallel",
+  appleWebApp: { capable: true, title: "Hallel", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -37,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>{children}</ThemeProvider>
+        <RegistrarSW />
       </body>
     </html>
   );

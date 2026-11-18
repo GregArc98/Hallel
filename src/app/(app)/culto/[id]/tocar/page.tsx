@@ -3,12 +3,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BaixarAudios } from "@/components/pwa/baixar-audios";
 import { Button } from "@/components/ui/button";
 import { exigirIntegrante } from "@/lib/auth";
 import { carregarFuncoes } from "@/lib/equipe/dados";
 import { carregarCulto, carregarRepertorioCompleto } from "@/lib/escala/dados";
 import { NOME_PERIODO, dataCurta } from "@/lib/escala/datas";
 import { indiceValido } from "@/lib/inicio/regras";
+import { ehBlobDoVercel } from "@/lib/musicas/audio";
 import { ModoCulto } from "./modo-culto";
 
 export const metadata: Metadata = { title: "Modo culto" };
@@ -37,11 +39,16 @@ export default async function TocarPage({ params, searchParams }: PageProps<"/cu
           {ctx.admin || culto.repertorioPublicado ? "Este culto ainda não tem músicas." : "Repertório ainda não publicado."}
         </p>
       ) : (
+        <>
+        <div className="mb-3">
+          <BaixarAudios urls={[...new Set(musicas.map((m) => m.audioUrl).filter((u): u is string => ehBlobDoVercel(u)))]} />
+        </div>
         <ModoCulto
           musicas={musicas}
           inicial={indiceValido(typeof sp.i === "string" ? sp.i : null, musicas.length)}
           modo={soCanta ? "letra" : "cifra"}
         />
+        </>
       )}
     </div>
   );

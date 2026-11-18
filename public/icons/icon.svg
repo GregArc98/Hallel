@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#3f46a8"/>
+  <g fill="#ffffff">
+    <!-- duas colcheias ligadas -->
+    <path d="M196 132 L372 100 L372 330 A46 40 0 1 1 340 292 L340 172 L228 192 L228 362 A46 40 0 1 1 196 324 Z"/>
+  </g>
+  <circle cx="404" cy="108" r="22" fill="#f6b73c"/>
+</svg>

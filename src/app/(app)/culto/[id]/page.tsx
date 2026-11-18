@@ -3,10 +3,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BaixarAudios } from "@/components/pwa/baixar-audios";
 import { Button } from "@/components/ui/button";
 import { exigirIntegrante } from "@/lib/auth";
 import { carregarEquipe, carregarFuncoes } from "@/lib/equipe/dados";
-import { carregarCulto, carregarRepertorio } from "@/lib/escala/dados";
+import { carregarCulto, carregarRepertorioCompleto } from "@/lib/escala/dados";
+import { ehBlobDoVercel } from "@/lib/musicas/audio";
 import { ICONE_PERIODO, NOME_PERIODO, chaveMes, dataCurta, mesDaData } from "@/lib/escala/datas";
 import { tomDoCulto } from "@/lib/repertorio/regras";
 import { cn } from "@/lib/utils";
@@ -21,7 +23,7 @@ export default async function CultoPage({ params }: PageProps<"/culto/[id]">) {
   if (!culto) notFound();
 
   const [itens, funcoes, equipe] = await Promise.all([
-    carregarRepertorio(id),
+    carregarRepertorioCompleto(id),
     carregarFuncoes(ctx.igreja.id),
     carregarEquipe(ctx.igreja.id),
   ]);
@@ -71,6 +73,11 @@ export default async function CultoPage({ params }: PageProps<"/culto/[id]">) {
               <Play /> Modo culto
             </Link>
           </Button>
+        )}
+        {repertorioVisivel && (
+          <BaixarAudios
+            urls={[...new Set(itens.map((m) => m.audioUrl).filter((u): u is string => ehBlobDoVercel(u)))]}
+          />
         )}
         {ctx.admin && !culto.repertorioPublicado && (
           <p className="text-sm text-muted-foreground">Rascunho: só líderes veem.</p>
