@@ -9,6 +9,7 @@ cada culto.
   tom, a cifra já transposta e o áudio.
 
 Plano, modelo de dados e decisões: [`docs/PLANO.md`](docs/PLANO.md).
+Guia de uso para a equipe: [`docs/GUIA.md`](docs/GUIA.md).
 
 **Produção:** https://hallel-three.vercel.app
 
@@ -36,10 +37,14 @@ repositório na Vercel: cada push gera um link de pré-visualização.
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Gera os tipos de rota do Next e roda o TypeScript |
 | `npm run build` | Build de produção |
+| `npm run test:e2e` | Testes de ponta a ponta (Playwright) das telas públicas, modo offline e acessibilidade (axe). Rode depois do `npm run build` |
 | `npm run test:db` | Aplica migrações + seed num Postgres local temporário e testa as regras de acesso (requer Postgres 15+ instalado) |
 | `npm run db:seed:gerar` | Gera `supabase/seed.sql` a partir de `src/data/seed.ts` |
 
-O CI (GitHub Actions) roda lint, typecheck, testes unitários, testes de banco e build a cada push.
+O CI (GitHub Actions) roda lint, typecheck, testes unitários, testes de banco, build e
+testes de ponta a ponta a cada push. As telas logadas são cobertas pelos testes de banco
+(regras de acesso) e unitários (regras de negócio); os de ponta a ponta usam só telas
+públicas porque o login depende de e-mail.
 
 ## Variáveis de ambiente
 

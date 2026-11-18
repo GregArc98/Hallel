@@ -85,4 +85,4 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 7 | Repertório do culto | ✅ |
 | 8 | Início do membro + Modo culto | ✅ |
 | 9 | PWA + offline | ✅ |
-| 10 | Polimento + deploy | ⏳ |
+| 10 | Polimento + deploy | ✅ |
