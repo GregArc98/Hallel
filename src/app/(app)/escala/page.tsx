@@ -1,4 +1,4 @@
-import { CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus, Send, Undo2, UserX } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, ListMusic, Pencil, Plus, Send, Undo2, UserX } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -187,6 +187,22 @@ export default async function EscalaPage({ searchParams }: PageProps<"/escala">)
               ) : (
                 <p className="px-4 py-3 text-sm text-muted-foreground">Escala em preparação.</p>
               )}
+
+              <div className="flex flex-wrap items-center gap-2 border-t px-4 py-2">
+                <Button asChild size="sm" variant="ghost">
+                  <Link href={`/culto/${c.id}`}>
+                    <ListMusic />
+                    {ctx.admin || c.repertorioPublicado
+                      ? c.musicas > 0
+                        ? `Repertório (${c.musicas} música${c.musicas > 1 ? "s" : ""})`
+                        : "Repertório (vazio)"
+                      : "Ver culto"}
+                  </Link>
+                </Button>
+                {ctx.admin && c.musicas > 0 && !c.repertorioPublicado && (
+                  <span className="text-xs text-muted-foreground">repertório em rascunho</span>
+                )}
+              </div>
 
               {problemas.length > 0 && !passou && (
                 <p className="border-t px-4 py-2 text-sm text-amber-700 dark:text-amber-400">

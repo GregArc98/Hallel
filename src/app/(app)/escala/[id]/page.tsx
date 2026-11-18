@@ -1,4 +1,4 @@
-import { ArrowLeft, Send, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeft, ListMusic, Send, Trash2, Undo2 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -70,6 +70,12 @@ export default async function EditarEscalaPage({ params, searchParams }: PagePro
           {culto.escalaPublicada ? "escala publicada (a equipe vê)" : "rascunho (a equipe ainda não vê)"}
         </p>
       </header>
+
+      <Button asChild variant="outline">
+        <Link href={`/escala/${culto.id}/repertorio`}>
+          <ListMusic /> Repertório ({culto.musicas} música{culto.musicas === 1 ? "" : "s"})
+        </Link>
+      </Button>
 
       {naoPodem.length > 0 && (
         <p className="rounded-xl bg-muted px-3 py-2 text-sm">

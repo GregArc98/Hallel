@@ -9,6 +9,7 @@ import { carregarFuncoes } from "@/lib/equipe/dados";
 import { carregarCulto } from "@/lib/escala/dados";
 import { chaveMes, domingosDoMes, lerMes, mesDaData, primeiroEUltimoDia } from "@/lib/escala/datas";
 import { diferencaVagas, lerVagas } from "@/lib/escala/regras";
+import { esquemaRepertorio } from "@/lib/repertorio/regras";
 import { createClient } from "@/lib/supabase/server";
 
 function revalidarEscala() {
@@ -231,4 +232,48 @@ export async function alternarIndisponibilidade(formData: FormData): Promise<voi
   }
   revalidarEscala();
   redirect(`/disponibilidade#d-${data}`);
+}
+
+export interface EstadoRepertorio {
+  erro?: string;
+  ok?: boolean;
+}
+
+/** Salva o repertório inteiro (ordem, tom, observações) numa única transação no banco. */
+export async function salvarRepertorio(
+  _anterior: EstadoRepertorio,
+  formData: FormData,
+): Promise<EstadoRepertorio> {
+  await exigirAdmin();
+  const cultoId = String(formData.get("culto_id") ?? "");
+  let itens: unknown;
+  try {
+    itens = JSON.parse(String(formData.get("itens") ?? "[]"));
+  } catch {
+    return { erro: "Repertório inválido." };
+  }
+  const r = esquemaRepertorio.safeParse({ itens, observacoes: String(formData.get("observacoes") ?? "") });
+  if (!r.success) return { erro: r.error.issues[0].message };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("salvar_repertorio", {
+    p_culto: cultoId,
+    p_itens: r.data.itens,
+    p_observacoes: r.data.observacoes,
+  });
+  if (error) return { erro: `Não foi possível salvar: ${error.message}` };
+  revalidarEscala();
+  revalidatePath(`/culto/${cultoId}`);
+  return { ok: true };
+}
+
+export async function publicarRepertorio(formData: FormData): Promise<void> {
+  const ctx = await exigirAdmin();
+  const id = String(formData.get("id") ?? "");
+  const publicar = formData.get("publicar") === "1";
+  const supabase = await createClient();
+  await supabase.from("culto").update({ repertorio_publicado: publicar }).eq("id", id).eq("igreja_id", ctx.igreja.id);
+  revalidarEscala();
+  revalidatePath(`/culto/${id}`);
+  redirect(`/escala/${id}/repertorio`);
 }

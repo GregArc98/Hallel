@@ -7,6 +7,7 @@ import { AudioReferencia } from "@/components/audio-player";
 import { SongViewer } from "@/components/chord-sheet/song-viewer";
 import { Button } from "@/components/ui/button";
 import { exigirIntegrante } from "@/lib/auth";
+import { parseKey } from "@/lib/music";
 import { createClient } from "@/lib/supabase/server";
 
 async function buscarMusica(id: string, igrejaId: string) {
@@ -26,9 +27,13 @@ export async function generateMetadata({ params }: PageProps<"/musicas/[id]">): 
   return { title: musica?.titulo ?? "Música" };
 }
 
-export default async function MusicaPage({ params }: PageProps<"/musicas/[id]">) {
+export default async function MusicaPage({ params, searchParams }: PageProps<"/musicas/[id]">) {
   const ctx = await exigirIntegrante();
   const { id } = await params;
+  const sp = await searchParams;
+  const tomCulto = typeof sp.tom === "string" && parseKey(sp.tom) ? sp.tom : null;
+  const cultoId = typeof sp.culto === "string" && /^[0-9a-f-]{36}$/i.test(sp.culto) ? sp.culto : null;
+  const modo = sp.modo === "letra" ? "letra" : "cifra";
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const musica = await buscarMusica(id, ctx.igreja.id);
   if (!musica) notFound();
@@ -75,8 +80,8 @@ export default async function MusicaPage({ params }: PageProps<"/musicas/[id]">)
     <div>
       <div className="mb-3 flex items-center justify-between gap-2">
         <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/musicas">
-            <ArrowLeft /> Músicas
+          <Link href={cultoId ? `/culto/${cultoId}` : "/musicas"}>
+            <ArrowLeft /> {cultoId ? "Repertório" : "Músicas"}
           </Link>
         </Button>
         {ctx.admin && (
@@ -94,6 +99,8 @@ export default async function MusicaPage({ params }: PageProps<"/musicas/[id]">)
           subtitle={subtitulo || undefined}
           chordpro={musica.cifra}
           originalKey={musica.tom_original}
+          initialKey={tomCulto}
+          defaultMode={modo}
         >
           {extras}
         </SongViewer>
