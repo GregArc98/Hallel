@@ -108,9 +108,12 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
 - **Regras de acesso (RLS):** só integrantes ativos veem os dados da própria igreja;
   só admins alteram; membros veem só escalas/repertórios **publicados**;
   indisponibilidade só para a própria pessoa e admins; a igreja nunca fica sem admin.
-- **Login só para cadastrados:** a conta é ligada ao integrante automaticamente pelo
-  e-mail confirmado (gatilhos no banco), nos dois sentidos — cadastrar antes ou depois
-  do primeiro login funciona. Quem entra sem cadastro vê "Peça ao líder".
+- **Entrada na equipe:** o líder manda o **link de convite da igreja** (`/convite/<código>`)
+  no grupo; cada pessoa entra com o e-mail e cria o próprio perfil (nome, WhatsApp), que fica
+  **pendente** até um líder aprovar e definir papel e funções (`entrar_na_equipe`). Quem o
+  líder já cadastrou pelo e-mail é ligado direto. O link pode ser renovado ou desativado.
+- Cada pessoa edita o próprio nome e WhatsApp (`atualizar_meu_perfil`); papel, funções e
+  "ativo" só líderes. **Último acesso** (`acesso_integrante`) é visível só para líderes.
 - Excluir uma música (com confirmação) também a tira dos repertórios antigos em que apareceu.
 - Tipos TypeScript em `src/lib/supabase/database.types.ts` (gerados pelo Supabase;
   gere de novo após mudar o esquema).
@@ -121,7 +124,7 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
    - *Site URL:* a URL de produção (ex.: `https://hallel.vercel.app`) ou `http://localhost:3000`.
    - *Redirect URLs:* `http://localhost:3000/**`, `http://*:3000/**` (rede local) e
      `https://*.vercel.app/**`.
-2. **Primeiro admin** (SQL Editor), trocando nome e e-mail:
+2. **Primeiro admin** (só ao criar um banco novo; SQL Editor), trocando nome e e-mail:
    ```sql
    update public.integrante set email = 'seu@email.com', papel = 'admin'
    where nome = 'Matheus';

@@ -8,7 +8,7 @@ Documento vivo com as decisões aprovadas. Atualize ao mudar o escopo.
 |---|---|
 | Stack | Next.js 16 (App Router) + TypeScript + Tailwind 4 + shadcn/ui; Supabase (Postgres, Auth, RLS); deploy na Vercel |
 | Áudios | **Vercel Blob** (Hobby: ~1 GB de espaço, ~10 GB de tráfego/mês, sem cartão). Arquivos públicos com nome aleatório; upload direto do navegador autorizado só para admins. Acesso isolado em `lib/storage` para trocar por R2/B2 |
-| Login | Google ou link mágico por e-mail. **Só e-mails cadastrados** por um admin entram; no 1º login a conta é vinculada ao integrante pelo e-mail |
+| Login | Link mágico por e-mail (Google opcional), sem senha. Entrada na equipe pelo **link de convite da igreja**: a pessoa cria o perfil (nome, e-mail, WhatsApp) e o líder aprova definindo papel e funções |
 | Papéis | `admin` (líder e co-líderes) e `membro`, guardados no integrante |
 | Multi-igreja | `igreja_id` em todas as tabelas (tenant); seletor de igreja só aparece se a pessoa estiver em mais de uma |
 | Visibilidade | Membro vê a escala completa (só leitura) e apenas escalas/repertórios **publicados**. Indisponibilidade só para a própria pessoa e admins |
@@ -86,3 +86,4 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 8 | Início do membro + Modo culto | ✅ |
 | 9 | PWA + offline | ✅ |
 | 10 | Polimento + deploy | ✅ |
+| 11 | Cadastro pela própria equipe (convite único + aprovação, último acesso) | ✅ |

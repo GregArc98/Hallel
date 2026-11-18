@@ -4,9 +4,13 @@ Endereço: **https://hallel-three.vercel.app**
 
 ## Para todos
 
-**Entrar:** digite seu e-mail e toque em *Receber link de acesso*. Abra o e-mail e toque em
-*Entrar no Hallel*. Não tem senha. Se aparecer "Peça ao líder", seu e-mail ainda não está
-cadastrado na equipe.
+**Primeira vez:** abra o **link de convite** que o líder mandou no grupo do WhatsApp.
+1. Digite seu e-mail e toque em *Receber link de acesso*; abra o e-mail e toque em *Entrar no Hallel*.
+2. Preencha seu **nome** e **WhatsApp** e toque em *Pedir para entrar na equipe*.
+3. Aguarde o líder aprovar. Pronto: abra o Hallel e suas escalas aparecem.
+
+**Depois:** é só abrir o Hallel — você continua conectado. Se sair da conta, entre de novo
+com o mesmo e-mail (não tem senha). Nome e WhatsApp você corrige no **Perfil**.
 
 **Instalar no celular** (recomendado):
 - Android (Chrome): menu ⋮ → *Instalar app*.
@@ -41,8 +45,14 @@ você **não pode**. O líder vê isso na hora de montar a escala.
 3. Envie o áudio (mp3) ou cole o link do Drive. Salve.
 
 **Equipe**
-- *Novo integrante*: nome, **e-mail** (é com ele que a pessoa entra) e as funções em cada
-  período (☀ manhã / 🌙 noite).
+- **Link de convite da equipe**: *Copiar link* ou *Enviar no WhatsApp* e mande **uma vez** no
+  grupo. Cada pessoa cria o próprio perfil (nome, e-mail, WhatsApp).
+- **Novos cadastros**: toque em *Aprovar*, escolha o papel e as funções em cada período
+  (☀ manhã / 🌙 noite) e *Aprovar e salvar*. *Recusar* apaga o pedido.
+- O link vazou para fora do grupo? *Gerar link novo* (o antigo para de funcionar) ou
+  *Desativar link* depois que todos entrarem.
+- **Último acesso** de cada pessoa aparece só para líderes.
+- Também dá para cadastrar alguém direto em *Novo integrante* (com o e-mail da pessoa).
 - *Funções*: limite por culto (Vocal = 3), ordem e se a música abre na cifra ou na letra.
 - Desmarcar *Ativo na equipe* = afastado (não entra no app nem aparece para escalar).
 
