@@ -87,3 +87,4 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 9 | PWA + offline | ✅ |
 | 10 | Polimento + deploy | ✅ |
 | 11 | Cadastro pela própria equipe (convite único + aprovação, último acesso) | ✅ |
+| 12 | Player de ensaio: tom do áudio (segue a cifra), velocidade, ±10 s, Moises/baixar | ✅ |

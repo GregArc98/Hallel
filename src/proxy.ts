@@ -9,6 +9,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Tudo, exceto arquivos estáticos e imagens.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp3|m4a|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|soundtouch-processor.js|manifest.webmanifest|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp3|m4a|wav|ogg|aac|flac|webmanifest)$).*)",
   ],
 };

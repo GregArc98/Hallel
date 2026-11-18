@@ -44,3 +44,6 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# gerado a partir de @soundtouchjs/audio-worklet (npm run copiar-processador)
+/public/soundtouch-processor.js

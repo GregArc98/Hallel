@@ -26,6 +26,11 @@ com o tom de cada uma, e o botão **▶ Modo culto**.
 - **Cifra / Letra**: quem canta pode ver só a letra.
 - **Tom − / +** e **♯ / ♭**: só muda na sua tela.
 
+**Áudio de referência (player de ensaio):** ⟲ 10s / ⟳ 10s para voltar e avançar,
+**Velocidade** para ouvir mais devagar, e **Tom do áudio − / +**. Na cifra, o áudio já toca no
+tom do culto ("Segue a cifra"). Acima de 3 semitons a voz pode soar artificial — para separar
+instrumentos, use **Abrir no Moises / Compartilhar** (ou *Baixar áudio*).
+
 **Sem internet:** abra o Hallel conectado antes do culto — o repertório dos seus próximos
 cultos fica salvo no celular. Para ouvir os áudios sem internet, toque em
 *Baixar áudios deste culto*.

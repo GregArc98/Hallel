@@ -30,6 +30,7 @@ import {
 } from "@/lib/music";
 import { cn } from "@/lib/utils";
 import { ChordSheet, type SheetMode } from "./chord-sheet";
+import { TomDaCifra } from "./tom-context";
 
 const FONT_MIN = 14;
 const FONT_MAX = 44;
@@ -240,6 +241,7 @@ export function SongViewer({
 
   if (stage) {
     return (
+      <TomDaCifra value={normalizeOffset(offset)}>
       <div
         ref={stageRef}
         className="dark fixed inset-0 z-50 overflow-y-auto bg-background text-foreground"
@@ -269,10 +271,12 @@ export function SongViewer({
           {scrollControls}
         </div>
       </div>
+      </TomDaCifra>
     );
   }
 
   return (
+    <TomDaCifra value={normalizeOffset(offset)}>
     <div className="pb-28">
       <header className="mb-3">
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
@@ -346,5 +350,6 @@ export function SongViewer({
         {scrollControls}
       </div>
     </div>
+    </TomDaCifra>
   );
 }
