@@ -1,7 +1,8 @@
 import { CirclePlay, ExternalLink, Music2 } from "lucide-react";
 
+import { PlayerEnsaio } from "@/components/player-ensaio";
 import { Button } from "@/components/ui/button";
-import { tipoDeAudio } from "@/lib/musicas/audio";
+import { ehBlobDoVercel, tipoDeAudio } from "@/lib/musicas/audio";
 
 /**
  * Áudio de referência: toca direto quando é arquivo; links do Drive e outros abrem fora.
@@ -11,10 +12,14 @@ export function AudioReferencia({
   audioUrl,
   audioUrlExterno,
   youtubeUrl,
+  titulo,
+  tomOriginal,
 }: {
   audioUrl: string | null;
   audioUrlExterno: string | null;
   youtubeUrl: string | null;
+  titulo: string;
+  tomOriginal: string | null;
 }) {
   const tocavel = [audioUrl, audioUrlExterno].find((u) => u && tipoDeAudio(u) === "arquivo");
   const link = [audioUrlExterno, audioUrl].find((u) => u && u !== tocavel);
@@ -22,9 +27,12 @@ export function AudioReferencia({
 
   return (
     <div className="mb-5 space-y-2 rounded-xl border bg-card p-3">
-      {tocavel && (
-        <audio controls preload="none" src={tocavel} className="w-full" aria-label="Áudio de referência" />
-      )}
+      {tocavel &&
+        (ehBlobDoVercel(tocavel) ? (
+          <PlayerEnsaio url={tocavel} titulo={titulo} tomOriginal={tomOriginal} />
+        ) : (
+          <audio controls preload="none" src={tocavel} className="w-full" aria-label="Áudio de referência" />
+        ))}
       {(link || youtubeUrl) && (
         <div className="flex flex-wrap gap-2">
           {link && (

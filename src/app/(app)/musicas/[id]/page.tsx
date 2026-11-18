@@ -52,6 +52,8 @@ export default async function MusicaPage({ params, searchParams }: PageProps<"/m
         audioUrl={musica.audio_url}
         audioUrlExterno={musica.audio_url_externo}
         youtubeUrl={musica.youtube_url}
+        titulo={musica.titulo}
+        tomOriginal={musica.tom_original}
       />
       {(musica.tags.length > 0 || musica.observacoes) && (
         <div className="mb-5 space-y-2">

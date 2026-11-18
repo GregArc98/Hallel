@@ -140,7 +140,7 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.origin !== self.location.origin) return;
 
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname === "/soundtouch-processor.js") {
     event.respondWith(estaticoPrimeiroDoCache(request));
     return;
   }
@@ -172,7 +172,7 @@ async function salvarPaginas(urls) {
       /* sem rede */
     }
   }
-  await guardarArquivos([...arquivos]);
+  await guardarArquivos([...arquivos, "/soundtouch-processor.js"]);
   return { salvas };
 }
 

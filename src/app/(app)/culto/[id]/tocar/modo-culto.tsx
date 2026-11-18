@@ -60,7 +60,13 @@ export function ModoCulto({
       {atual.observacao && (
         <p className="mb-4 rounded-xl bg-accent px-3 py-2 font-medium">📝 {atual.observacao}</p>
       )}
-      <AudioReferencia audioUrl={atual.audioUrl} audioUrlExterno={atual.audioUrlExterno} youtubeUrl={atual.youtubeUrl} />
+      <AudioReferencia
+        audioUrl={atual.audioUrl}
+        audioUrlExterno={atual.audioUrlExterno}
+        youtubeUrl={atual.youtubeUrl}
+        titulo={atual.titulo}
+        tomOriginal={atual.tomOriginal}
+      />
     </>
   );
 
