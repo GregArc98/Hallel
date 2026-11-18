@@ -26,10 +26,13 @@ export function IntegranteForm({
   funcoes,
   valores,
   euMesmo,
+  aprovar = false,
 }: {
   funcoes: Array<{ id: string; nome: string }>;
   valores: ValoresIntegrante;
   euMesmo: boolean;
+  /** Cadastro feito pela pessoa pelo link: salvar = aprovar. */
+  aprovar?: boolean;
 }) {
   const [estado, acao, salvando] = useActionState<EstadoIntegrante, FormData>(salvarIntegrante, {});
   const erros = estado.erros ?? {};
@@ -38,6 +41,7 @@ export function IntegranteForm({
   return (
     <form action={acao} className="space-y-6" noValidate>
       {valores.id && <input type="hidden" name="id" value={valores.id} />}
+      {aprovar && <input type="hidden" name="aprovar" value="1" />}
 
       <section className="grid gap-4 sm:grid-cols-2">
         <label className="block space-y-1.5 sm:col-span-2">
@@ -85,7 +89,7 @@ export function IntegranteForm({
             {euMesmo && " Se você virar membro, perde esses acessos."}
           </span>
         </label>
-        <label className="flex items-center gap-3 self-center pt-4 sm:pt-6">
+        <label className={`flex items-center gap-3 self-center pt-4 sm:pt-6 ${aprovar ? "hidden" : ""}`}>
           <input type="checkbox" name="ativo" defaultChecked={valores.ativo} className="size-6 accent-primary" />
           <span>
             <span className="block font-medium">Ativo na equipe</span>
@@ -153,7 +157,7 @@ export function IntegranteForm({
 
       <div className="sticky bottom-[var(--nav-h,0px)] z-10 -mx-4 flex gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
         <Button type="submit" size="lg" disabled={salvando} className="flex-1 sm:flex-none">
-          <Save /> {salvando ? "Salvando…" : "Salvar"}
+          <Save /> {salvando ? "Salvando…" : aprovar ? "Aprovar e salvar" : "Salvar"}
         </Button>
         <Button asChild variant="ghost" size="lg">
           <Link href="/equipe">Cancelar</Link>

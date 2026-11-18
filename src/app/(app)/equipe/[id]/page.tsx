@@ -32,8 +32,14 @@ export default async function EditarIntegrantePage({ params, searchParams }: Pag
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold">{membro.nome}</h1>
+        {!membro.aprovado && (
+          <p className="mt-2 rounded-lg bg-primary/10 px-3 py-2 text-sm">
+            <strong>Cadastro novo</strong> feito pelo link da equipe. Confira os dados, marque o papel e
+            as funções e toque em <strong>Aprovar e salvar</strong>.
+          </p>
+        )}
         <p className="text-sm text-muted-foreground">
-          {membro.email
+          {!membro.aprovado ? "" : membro.email
             ? membro.entrouNoApp
               ? "Já entrou no app."
               : "Ainda não entrou no app. Avise que é só abrir o Hallel e entrar com este e-mail."
@@ -48,6 +54,7 @@ export default async function EditarIntegrantePage({ params, searchParams }: Pag
       <IntegranteForm
         funcoes={funcoes}
         euMesmo={euMesmo}
+        aprovar={!membro.aprovado}
         valores={{
           id: membro.id,
           nome: membro.nome,

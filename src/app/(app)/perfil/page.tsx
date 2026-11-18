@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SairButton } from "@/components/sair-button";
 import { exigirIntegrante } from "@/lib/auth";
 import { carregarEquipe, carregarFuncoes, resumoFuncoes } from "@/lib/equipe/dados";
+import { MeusDados } from "./meus-dados";
 import { EscolherTema } from "./tema";
 
 export const metadata: Metadata = { title: "Perfil" };
@@ -26,10 +27,15 @@ export default async function PerfilPage() {
       </section>
 
       <section className="space-y-2 rounded-xl border p-4">
+        <h2 className="font-semibold">Seus dados</h2>
+        <MeusDados nome={eu?.nome ?? ctx.nome} telefone={eu?.telefone ?? ""} email={ctx.usuario.email ?? ""} />
+      </section>
+
+      <section className="space-y-2 rounded-xl border p-4">
         <h2 className="font-semibold">Suas funções</h2>
         <p>{eu ? resumoFuncoes(eu, funcoes).join(" · ") || "Nenhuma função cadastrada." : "—"}</p>
         <p className="text-sm text-muted-foreground">
-          Para mudar suas funções, fale com um líder.
+          Papel e funções são definidos pelos líderes.
           {ctx.admin && (
             <>
               {" "}
