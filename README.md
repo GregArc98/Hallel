@@ -71,6 +71,21 @@ aleatório (impossível de adivinhar), o que permite tocar no `<audio>` e guarda
 Trocar ou remover o áudio de uma música apaga o arquivo antigo. Todo o acesso ao
 provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e na rota.
 
+## App no celular (PWA) e modo offline
+
+- **Instalar:** no Android (Chrome), menu ⋮ → *Instalar app* / *Adicionar à tela inicial*;
+  no iPhone (Safari), botão Compartilhar → *Adicionar à Tela de Início*.
+- **Sem internet:** o service worker (`public/sw.js`) guarda as páginas visitadas e, ao abrir
+  o Início conectado, **salva sozinho o repertório e o modo culto dos 3 próximos cultos**
+  em que a pessoa está escalada. Página não salva → tela "Sem internet".
+- **Áudios:** "Baixar áudios deste culto" (página do culto e modo culto) guarda os áudios
+  enviados ao Hallel; o player toca do aparelho, inclusive avançando na música.
+  Links do Drive/YouTube continuam precisando de internet.
+- **Ao sair da conta**, páginas e áudios salvos são apagados do aparelho.
+- O service worker só é registrado em produção (`npm run build && npm start`), não no `npm run dev`.
+- Limitação: o iPhone pode apagar dados salvos de sites pouco usados depois de algumas
+  semanas; abrir o Hallel conectado antes do culto salva tudo de novo.
+
 ## Deploy (Vercel)
 
 - Projeto `hallel` (time gregarc98), ligado ao GitHub: **push na `main` → produção**;
@@ -137,6 +152,8 @@ src/
   app/(app)/culto/[id]/tocar/  modo culto: uma música por vez, ‹ › ou arrastar para o lado
   app/(app)/disponibilidade/  "não posso" do próprio membro
   app/api/audio/upload/   autoriza o envio de áudio para o Vercel Blob
+  app/manifest.ts, app/offline/  manifesto do app instalável e tela "sem internet"
+  components/pwa/         registro do SW, aviso offline, salvar repertório, baixar áudios
   app/entrar, app/auth/   login (link mágico / Google), retorno e saída
   hooks/                  preferências locais, tela sempre ligada, rolagem automática
   lib/auth.ts             sessão do usuário e igreja atual (Data Access Layer)
@@ -149,6 +166,7 @@ src/
   lib/escala/             datas (pt-BR, fuso de São Paulo), vagas, alertas e consultas da escala
   lib/storage/            armazenamento dos áudios (Vercel Blob)
   data/exemplos/          cifra real de exemplo (testes, demo e seed)
+public/sw.js              service worker (cache de páginas, arquivos e áudios)
 supabase/                 migrações e seed
 scripts/                  gerador do seed e testes de banco
 docs/PLANO.md             decisões, modelo de dados, telas e etapas
