@@ -20,6 +20,19 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Cabeçalhos de segurança em todas as páginas.
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), screen-wake-lock=(self), fullscreen=(self)",
+          },
+        ],
+      },
+      {
         // O service worker nunca fica em cache: atualizações chegam na hora.
         source: "/sw.js",
         headers: [

@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { NavInferior, NavTopo } from "@/components/app-nav";
 import { AvisoOffline } from "@/components/pwa/aviso-offline";
-import { SairButton } from "@/components/sair-button";
 import { exigirIntegrante } from "@/lib/auth";
 
 /** Área logada: exige integrante cadastrado. */
@@ -20,9 +19,16 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </Link>
           <span className="truncate text-sm text-muted-foreground">{ctx.igreja.nome}</span>
           <NavTopo />
-          <div className="ml-auto">
-            <SairButton />
-          </div>
+          <Link
+            href="/perfil"
+            className="ml-auto flex items-center gap-2 rounded-full py-1 pr-1 pl-3 text-sm font-medium hover:bg-accent"
+            aria-label={`Perfil de ${ctx.nome}`}
+          >
+            <span className="hidden max-w-32 truncate sm:inline">{ctx.nome}</span>
+            <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              {ctx.nome.trim().charAt(0).toUpperCase()}
+            </span>
+          </Link>
         </div>
       </header>
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-[calc(1.5rem+var(--nav-h))]">
