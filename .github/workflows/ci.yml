@@ -25,3 +25,7 @@ jobs:
       - name: Testes de banco (migrações + seed + RLS no Postgres do runner)
         run: npm run test:db
       - run: npm run build
+      - name: Testes de ponta a ponta (telas públicas, offline e acessibilidade)
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
