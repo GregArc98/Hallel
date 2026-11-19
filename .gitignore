@@ -47,3 +47,4 @@ next-env.d.ts
 
 # gerado a partir de @soundtouchjs/audio-worklet (npm run copiar-processador)
 /public/soundtouch-processor.js
+/public/signalsmith-stretch.mjs

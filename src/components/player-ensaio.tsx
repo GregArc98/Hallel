@@ -2,8 +2,6 @@
 
 import {
   Download,
-  Link2,
-  Link2Off,
   Loader2,
   Minus,
   Pause,
@@ -17,6 +15,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { TomDaCifra } from "@/components/chord-sheet/tom-context";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { usePreference } from "@/hooks/use-preference";
 import {
   LIMITE_SEMITONS,
@@ -28,108 +27,126 @@ import {
   rotuloSemitons,
   semitonsDoAudio,
 } from "@/lib/audio/ensaio";
+import { type TipoMotor } from "@/lib/audio/ensaio";
+import { type MotorTom, criarMotor } from "@/lib/audio/motores";
 import { transposeKey } from "@/lib/music";
-import { cn } from "@/lib/utils";
 
-const PROCESSADOR = "/soundtouch-processor.js";
-
-interface Motor {
+interface Base {
   contexto: AudioContext;
-  no: AudioWorkletNode & { pitchSemitones: AudioParam; playbackRate: AudioParam };
+  /** Saída do player nativo, ligada ao motor de tom. */
+  fonte: MediaElementAudioSourceNode;
 }
 
 /**
  * Player de ensaio para áudios enviados ao Hallel: tocar/pausar, voltar/avançar 10s,
- * velocidade (sem mudar o tom) e tom − / + (acompanhando a cifra, se estiver num visualizador).
+ * velocidade (sem mudar o tom) e tom (o da cifra, se estiver num visualizador).
  *
- * O tom é mudado no próprio aparelho (SoundTouch, num AudioWorklet). O áudio só passa pelo
- * processamento quando o tom sai do original — até lá, é o player nativo do navegador.
+ * O tom é mudado no próprio aparelho, por um de dois motores (ver lib/audio/motores). O áudio
+ * só passa pelo processamento quando o tom sai do original — até lá, é o player nativo.
  */
 export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo: string; tomOriginal: string | null }) {
   const offsetCifra = useContext(TomDaCifra);
   const audio = useRef<HTMLAudioElement>(null);
-  const motor = useRef<Motor | null>(null);
+  const base = useRef<Base | null>(null);
+  /** Criado no primeiro toque em ▶ (navegadores, principalmente o iPhone, só liberam áudio assim). */
+  const contextoRef = useRef<AudioContext | null>(null);
+  const motor = useRef<MotorTom | null>(null);
   const [tocando, setTocando] = useState(false);
   const [tempo, setTempo] = useState(0);
   const [duracao, setDuracao] = useState(0);
-  const [acompanha, setAcompanha] = useState(offsetCifra !== null);
+  /** Dentro da cifra o áudio sempre toca no tom dela (o − / + fica lá em cima). */
+  const naCifra = offsetCifra !== null;
   const [manual, setManual] = useState(0);
   const [velocidade, setVelocidade] = usePreference<number>("ensaio.velocidade", 1);
+  const [tipoMotor, setTipoMotor] = usePreference<string>("ensaio.motor", "padrao");
   const [preparando, setPreparando] = useState(false);
   const [semTom, setSemTom] = useState<string | null>(null);
   const [arquivo, setArquivo] = useState<"livre" | "baixando" | "erro">("livre");
 
-  const semitons = semTom ? 0 : semitonsDoAudio(acompanha, offsetCifra, manual);
+  const tipo: TipoMotor = tipoMotor === "qualidade" ? "qualidade" : "padrao";
+  const semitons = semTom ? 0 : semitonsDoAudio(naCifra, offsetCifra, manual);
   const tomAtual = tomOriginal ? transposeKey(tomOriginal, semitons) : null;
-  const podeCompartilhar = typeof navigator !== "undefined" && "share" in navigator && "canShare" in navigator;
 
-  /** Liga o processamento de tom (uma vez por player). */
-  const ligarMotor = useCallback(async (): Promise<Motor | null> => {
-    if (motor.current) return motor.current;
-    const el = audio.current;
-    if (!el) return null;
-    setPreparando(true);
-    try {
-      const { SoundTouchNode } = await import("@soundtouchjs/audio-worklet");
-      const contexto = new AudioContext();
-      await SoundTouchNode.register(contexto, PROCESSADOR);
-
-      // Para o navegador entregar o som ao processamento, o áudio precisa ser lido com CORS.
-      if (el.crossOrigin !== "anonymous") {
-        const posicao = el.currentTime;
-        const estavaTocando = !el.paused;
-        el.crossOrigin = "anonymous";
-        el.src = url;
-        await new Promise<void>((ok, falha) => {
-          el.addEventListener("loadedmetadata", () => ok(), { once: true });
-          el.addEventListener("error", () => falha(new Error("cors")), { once: true });
-        });
-        el.currentTime = posicao;
-        if (estavaTocando) void el.play();
+  /** Liga (ou troca) o motor de tom. A ligação com o player nativo é feita uma vez só. */
+  const ligarMotor = useCallback(
+    async (qual: TipoMotor): Promise<MotorTom | null> => {
+      if (motor.current?.tipo === qual) return motor.current;
+      const el = audio.current;
+      if (!el) return null;
+      setPreparando(true);
+      try {
+        if (!base.current) {
+          const contexto = contextoRef.current ?? new AudioContext();
+          contextoRef.current = contexto;
+          // Para o navegador entregar o som ao processamento, o áudio precisa ser lido com CORS.
+          if (el.crossOrigin !== "anonymous") {
+            const posicao = el.currentTime;
+            const estavaTocando = !el.paused;
+            el.crossOrigin = "anonymous";
+            el.src = url;
+            await new Promise<void>((ok, falha) => {
+              el.addEventListener("loadedmetadata", () => ok(), { once: true });
+              el.addEventListener("error", () => falha(new Error("cors")), { once: true });
+            });
+            el.currentTime = posicao;
+            if (estavaTocando) void el.play();
+          }
+          base.current = { contexto, fonte: contexto.createMediaElementSource(el) };
+        }
+        // O processamento só "acorda" com o áudio ativo; sem isso o motor nunca fica pronto.
+        if (base.current.contexto.state === "suspended") await base.current.contexto.resume().catch(() => {});
+        motor.current?.desligar();
+        motor.current = null;
+        motor.current = await Promise.race([
+          criarMotor(qual, base.current.contexto, base.current.fonte),
+          new Promise<never>((_, falha) => setTimeout(() => falha(new Error("motor não respondeu")), 8000)),
+        ]);
+        return motor.current;
+      } catch (erro) {
+        console.warn("Hallel: não foi possível ligar a mudança de tom do áudio", erro);
+        if (!base.current) {
+          // Sem permissão de leitura (CORS) ou navegador sem AudioWorklet: volta ao player normal.
+          el.removeAttribute("crossorigin");
+          el.src = url;
+          setSemTom("Este áudio não permite mudar o tom aqui. Toque no tom original ou use o Moises.");
+        } else {
+          setSemTom("Não foi possível usar este motor de tom neste aparelho. Escolha o outro.");
+        }
+        return null;
+      } finally {
+        setPreparando(false);
       }
+    },
+    [url],
+  );
 
-      const no = new SoundTouchNode({ context: contexto }) as Motor["no"];
-      contexto.createMediaElementSource(el).connect(no);
-      no.connect(contexto.destination);
-      motor.current = { contexto, no };
-      return motor.current;
-    } catch (erro) {
-      console.warn("Hallel: não foi possível ligar a mudança de tom do áudio", erro);
-      // Sem permissão de leitura (CORS) ou navegador sem AudioWorklet: volta ao player normal.
-      el.removeAttribute("crossorigin");
-      el.src = url;
-      setSemTom("Este áudio não permite mudar o tom aqui. Toque no tom original ou use o Moises.");
-      return null;
-    } finally {
-      setPreparando(false);
-    }
-  }, [url]);
-
-  // Aplica tom e velocidade sempre que mudam.
+  // Aplica tom e velocidade (e troca de motor) sempre que mudam.
   useEffect(() => {
     const el = audio.current;
     if (!el) return;
     el.playbackRate = velocidade;
-    if (motor.current) {
-      el.preservesPitch = false; // o SoundTouch cuida do tom
-      motor.current.no.playbackRate.value = velocidade;
-      motor.current.no.pitchSemitones.value = semitons;
+    const aplicar = (m: MotorTom | null) => {
+      if (!m) return;
+      el.preservesPitch = false; // o motor cuida do tom
+      m.aplicar(semitons, velocidade);
+    };
+    if (motor.current && motor.current.tipo === tipo) {
+      aplicar(motor.current);
+    } else if (motor.current || semitons !== 0) {
+      if (!motor.current) el.preservesPitch = true;
+      // Liga o processamento logo depois desta renderização (ex.: o tom da cifra mudou).
+      void Promise.resolve()
+        .then(() => ligarMotor(tipo))
+        .then(aplicar);
     } else {
       el.preservesPitch = true; // velocidade sem mudar o tom, pelo próprio navegador
-      // Liga o processamento logo depois desta renderização (ex.: o tom da cifra mudou).
-      if (semitons !== 0) void Promise.resolve().then(ligarMotor).then((m) => {
-        if (m) {
-          el.preservesPitch = false;
-          m.no.playbackRate.value = velocidade;
-          m.no.pitchSemitones.value = semitons;
-        }
-      });
     }
-  }, [semitons, velocidade, ligarMotor]);
+  }, [semitons, velocidade, tipo, ligarMotor]);
 
   useEffect(
     () => () => {
-      void motor.current?.contexto.close().catch(() => {});
+      motor.current?.desligar();
+      void contextoRef.current?.close().catch(() => {});
     },
     [],
   );
@@ -137,15 +154,14 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
   async function alternar() {
     const el = audio.current;
     if (!el) return;
-    if (motor.current?.contexto.state === "suspended") await motor.current.contexto.resume();
+    if (!contextoRef.current && typeof AudioContext !== "undefined") contextoRef.current = new AudioContext();
+    if (contextoRef.current?.state === "suspended") void contextoRef.current.resume();
     if (el.paused) await el.play().catch(() => {});
     else el.pause();
   }
 
   function mudarTom(delta: number) {
-    const base = semitonsDoAudio(acompanha, offsetCifra, manual);
-    setAcompanha(false);
-    setManual(Math.max(-LIMITE_SEMITONS, Math.min(LIMITE_SEMITONS, base + delta)));
+    setManual((m) => Math.max(-LIMITE_SEMITONS, Math.min(LIMITE_SEMITONS, m + delta)));
   }
 
   async function obterArquivo(): Promise<File | null> {
@@ -162,14 +178,26 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
     }
   }
 
-  async function compartilhar() {
+  const [dicaMoises, setDicaMoises] = useState(false);
+
+  /** Celular: abre o compartilhar com o arquivo (escolha o Moises). Computador: baixa e abre o Moises. */
+  async function abrirNoMoises() {
+    // Abre a aba já no clique (navegadores bloqueiam abas abertas depois de um download).
+    const podeCompartilhar = typeof navigator.canShare === "function";
+    const aba = podeCompartilhar ? null : window.open("about:blank", "_blank");
     const f = await obterArquivo();
-    if (!f) return;
-    if (navigator.canShare?.({ files: [f] })) {
-      await navigator.share({ files: [f], title: titulo }).catch(() => {});
-    } else {
-      salvar(f);
+    if (!f) {
+      aba?.close();
+      return;
     }
+    if (podeCompartilhar && navigator.canShare({ files: [f] })) {
+      await navigator.share({ files: [f], title: titulo }).catch(() => {});
+      return;
+    }
+    salvar(f);
+    setDicaMoises(true);
+    if (aba) aba.location.href = "https://moises.ai/";
+    else window.open("https://moises.ai/", "_blank", "noopener");
   }
 
   function salvar(f: File) {
@@ -242,32 +270,27 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex items-center gap-1" role="group" aria-label="Tom do áudio">
-          <span className="mr-1 text-sm text-muted-foreground">Tom do áudio</span>
-          <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(-1)} disabled={!!semTom} aria-label="Baixar meio tom do áudio">
-            <Minus />
-          </Button>
-          <span className="min-w-16 text-center text-sm font-semibold" aria-live="polite">
-            {tomAtual ? <span className="text-chord">{tomAtual}</span> : null}{" "}
-            <span className="text-muted-foreground">({rotuloSemitons(semitons)})</span>
-          </span>
-          <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(1)} disabled={!!semTom} aria-label="Subir meio tom do áudio">
-            <Plus />
-          </Button>
-          {offsetCifra !== null && !semTom && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setAcompanha((a) => !a)}
-              aria-pressed={acompanha}
-              title={acompanha ? "O áudio segue o tom da cifra" : "Tom do áudio independente da cifra"}
-              className={cn(acompanha && "text-primary")}
-            >
-              {acompanha ? <Link2 /> : <Link2Off />} {acompanha ? "Segue a cifra" : "Separado"}
+        {naCifra ? (
+          <p className="text-sm" aria-live="polite">
+            <span className="text-muted-foreground">Tocando em </span>
+            <strong className="text-chord">{tomAtual ?? rotuloSemitons(semitons)}</strong>
+            <span className="text-muted-foreground"> — o tom da cifra</span>
+          </p>
+        ) : (
+          <div className="flex items-center gap-1" role="group" aria-label="Tom do áudio">
+            <span className="mr-1 text-sm text-muted-foreground">Tom do áudio</span>
+            <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(-1)} disabled={!!semTom} aria-label="Baixar meio tom do áudio">
+              <Minus />
             </Button>
-          )}
-        </div>
+            <span className="min-w-16 text-center text-sm font-semibold" aria-live="polite">
+              {tomAtual ? <span className="text-chord">{tomAtual}</span> : null}{" "}
+              <span className="text-muted-foreground">({rotuloSemitons(semitons)})</span>
+            </span>
+            <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(1)} disabled={!!semTom} aria-label="Subir meio tom do áudio">
+              <Plus />
+            </Button>
+          </div>
+        )}
 
         <label className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">Velocidade</span>
@@ -285,20 +308,40 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
         </label>
       </div>
 
-      {semitons !== 0 && Math.abs(semitons) > 3 && !semTom && (
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-muted-foreground">Motor do tom (teste)</span>
+        <Segmented<TipoMotor>
+          ariaLabel="Motor de mudança de tom"
+          value={tipo}
+          onChange={(v) => {
+            setSemTom(null);
+            setTipoMotor(v);
+          }}
+          options={[
+            { value: "padrao", label: "Padrão" },
+            { value: "qualidade", label: "Alta qualidade" },
+          ]}
+        />
+      </div>
+
+      {semitons !== 0 && Math.abs(semitons) > 3 && !semTom && tipo === "padrao" && (
         <p className="text-xs text-muted-foreground">Acima de 3 semitons a voz pode soar artificial.</p>
       )}
       {semTom && <p className="text-sm text-amber-700 dark:text-amber-400">{semTom}</p>}
 
       <div className="flex flex-wrap gap-2 border-t pt-3">
-        {podeCompartilhar && (
-          <Button type="button" variant="outline" size="sm" onClick={compartilhar} disabled={arquivo === "baixando"}>
-            <Share2 /> Abrir no Moises / Compartilhar
-          </Button>
-        )}
+        <Button type="button" variant="outline" size="sm" onClick={abrirNoMoises} disabled={arquivo === "baixando"}>
+          <Share2 /> Abrir no Moises
+        </Button>
         <Button type="button" variant="ghost" size="sm" onClick={baixar} disabled={arquivo === "baixando"}>
           {arquivo === "baixando" ? <Loader2 className="animate-spin" /> : <Download />} Baixar áudio
         </Button>
+        {dicaMoises && (
+          <p className="w-full text-sm text-muted-foreground">
+            Áudio baixado. No Moises, toque em <strong>Upload</strong> e escolha o arquivo
+            &quot;{nomeDoArquivo(titulo, tomOriginal, url)}&quot;.
+          </p>
+        )}
         {arquivo === "erro" && <span className="text-sm text-amber-700 dark:text-amber-400">Não foi possível preparar o arquivo.</span>}
       </div>
     </div>

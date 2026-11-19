@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatarTempo, nomeDoArquivo, pular, rotuloSemitons, semitonsDoAudio } from "../ensaio";
+import { formatarTempo, nomeDoArquivo, pular, rotuloSemitons, semitonsCompensados, semitonsDoAudio } from "../ensaio";
 
 describe("player de ensaio", () => {
   it("segue a cifra ou o ajuste manual, com limite de ±6", () => {
@@ -31,5 +31,14 @@ describe("player de ensaio", () => {
     expect(pular(5, -10, 200)).toBe(0);
     expect(pular(100, 10, 200)).toBe(110);
     expect(pular(195, 10, 200)).toBe(199.75);
+  });
+});
+
+describe("compensação de velocidade", () => {
+  it("tira o deslocamento de tom causado pela velocidade", () => {
+    expect(semitonsCompensados(3, 1)).toBe(3);
+    expect(semitonsCompensados(0, 2)).toBeCloseTo(-12);
+    expect(semitonsCompensados(0, 0.5)).toBeCloseTo(12);
+    expect(semitonsCompensados(2, 0.75)).toBeCloseTo(2 + 4.98, 2);
   });
 });
