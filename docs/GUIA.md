@@ -28,8 +28,8 @@ com o tom de cada uma, e o botão **▶ Modo culto**.
 
 **Áudio de referência (player de ensaio):** ⟲ 10s / ⟳ 10s para voltar e avançar,
 **Velocidade** para ouvir mais devagar. O áudio toca **no mesmo tom da cifra**: mude o tom
-no − / + lá em cima (também no modo Letra) e o áudio acompanha. Acima de 3 semitons a voz pode
-soar artificial — para separar instrumentos, use **Abrir no Moises** (no celular abre o
+no − / + lá em cima (também no modo Letra) e o áudio acompanha. Em **Motor do tom**, *Alta qualidade*
+mantém a voz natural mesmo em tons mais distantes (gasta um pouco mais de bateria). Para separar instrumentos, use **Abrir no Moises** (no celular abre o
 compartilhar; no computador baixa o áudio e abre o site do Moises) ou *Baixar áudio*.
 
 **Sem internet:** abra o Hallel conectado antes do culto — o repertório dos seus próximos

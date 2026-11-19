@@ -97,11 +97,16 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
   e **tom do áudio − / +** (até ±6 semitons).
 - Dentro da cifra, o áudio **toca no tom da cifra** (o − / + do topo; aparece também no modo
   Letra). Fora da cifra, o player tem o próprio − / +.
-- A mudança de tom roda no aparelho com **SoundTouchJS** (`@soundtouchjs/audio-worklet`,
-  licença MPL-2.0), num AudioWorklet. O áudio só passa pelo processamento quando o tom sai do
-  original; o arquivo do processador é copiado para `public/` antes de `dev`/`build`
-  (`npm run copiar-processador`). Se o armazenamento não permitir a leitura (CORS), o player
-  avisa e segue no tom original.
+- A mudança de tom roda no aparelho, num AudioWorklet, com dois motores (em teste, chave
+  **Motor do tom**):
+  - **Padrão** — **SoundTouchJS** (`@soundtouchjs/audio-worklet`, MPL-2.0). Leve; acima de
+    ~3 semitons a voz fica "de esquilo" (o timbre sobe junto).
+  - **Alta qualidade** — **Signalsmith Stretch** (`signalsmith-stretch`, MIT) com correção de
+    formantes: o timbre da voz se mantém. Mais pesado. Carregado em tempo de execução de
+    `/signalsmith-stretch.mjs` (o empacotamento quebra o worklet embutido da biblioteca).
+  - O áudio só passa pelo processamento quando o tom sai do original. Os arquivos dos motores
+    são copiados para `public/` antes de `dev`/`build` (`npm run copiar-processador`). Se o
+    armazenamento não permitir a leitura (CORS), o player avisa e segue no tom original.
 - **Abrir no Moises**: no celular abre o compartilhar com o arquivo; no computador baixa o
   áudio e abre moises.ai. **Baixar áudio** salva com o nome da música.
 

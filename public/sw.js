@@ -140,7 +140,7 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.origin !== self.location.origin) return;
 
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname === "/soundtouch-processor.js") {
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname === "/soundtouch-processor.js" || url.pathname === "/signalsmith-stretch.mjs") {
     event.respondWith(estaticoPrimeiroDoCache(request));
     return;
   }
@@ -172,7 +172,7 @@ async function salvarPaginas(urls) {
       /* sem rede */
     }
   }
-  await guardarArquivos([...arquivos, "/soundtouch-processor.js"]);
+  await guardarArquivos([...arquivos, "/soundtouch-processor.js", "/signalsmith-stretch.mjs"]);
   return { salvas };
 }
 

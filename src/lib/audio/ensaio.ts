@@ -44,3 +44,14 @@ export function pular(atual: number, delta: number, duracao: number): number {
   if (!Number.isFinite(duracao) || duracao <= 0) return Math.max(0, alvo);
   return Math.max(0, Math.min(duracao - 0.25, alvo));
 }
+
+export type TipoMotor = "padrao" | "qualidade";
+
+/**
+ * Com o áudio tocando mais rápido/devagar (playbackRate, sem correção do navegador), o tom
+ * também sobe/desce. Para o motor que recebe esse áudio, o ajuste total é o pedido menos
+ * o que a velocidade já deslocou: 12·log2(velocidade) semitons.
+ */
+export function semitonsCompensados(semitons: number, velocidade: number): number {
+  return semitons - 12 * Math.log2(velocidade);
+}
