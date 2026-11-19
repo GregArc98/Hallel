@@ -313,7 +313,8 @@ export function SongViewer({
           </div>
         </div>
 
-        {mode === "cifra" && (
+        {/* O tom aparece também no modo Letra: quem canta muda o tom do áudio por aqui. */}
+        {(mode === "cifra" || originalKey) && (
           <div className="flex items-center gap-2">
             {keyStepper(false)}
             {!isInitial && (
@@ -327,6 +328,7 @@ export function SongViewer({
                 <RotateCcw />
               </Button>
             )}
+            {mode === "cifra" && (
             <Segmented<AccidentalPreference>
               className="ml-auto"
               ariaLabel="Sustenido ou bemol"
@@ -338,6 +340,7 @@ export function SongViewer({
                 { value: "flat", label: <span className="text-lg leading-none">♭</span>, ariaLabel: "Usar bemóis" },
               ]}
             />
+            )}
           </div>
         )}
       </div>

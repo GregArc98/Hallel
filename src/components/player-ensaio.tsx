@@ -2,8 +2,6 @@
 
 import {
   Download,
-  Link2,
-  Link2Off,
   Loader2,
   Minus,
   Pause,
@@ -29,7 +27,6 @@ import {
   semitonsDoAudio,
 } from "@/lib/audio/ensaio";
 import { transposeKey } from "@/lib/music";
-import { cn } from "@/lib/utils";
 
 const PROCESSADOR = "/soundtouch-processor.js";
 
@@ -52,16 +49,16 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
   const [tocando, setTocando] = useState(false);
   const [tempo, setTempo] = useState(0);
   const [duracao, setDuracao] = useState(0);
-  const [acompanha, setAcompanha] = useState(offsetCifra !== null);
+  /** Dentro da cifra o áudio sempre toca no tom dela (o − / + fica lá em cima). */
+  const naCifra = offsetCifra !== null;
   const [manual, setManual] = useState(0);
   const [velocidade, setVelocidade] = usePreference<number>("ensaio.velocidade", 1);
   const [preparando, setPreparando] = useState(false);
   const [semTom, setSemTom] = useState<string | null>(null);
   const [arquivo, setArquivo] = useState<"livre" | "baixando" | "erro">("livre");
 
-  const semitons = semTom ? 0 : semitonsDoAudio(acompanha, offsetCifra, manual);
+  const semitons = semTom ? 0 : semitonsDoAudio(naCifra, offsetCifra, manual);
   const tomAtual = tomOriginal ? transposeKey(tomOriginal, semitons) : null;
-  const podeCompartilhar = typeof navigator !== "undefined" && "share" in navigator && "canShare" in navigator;
 
   /** Liga o processamento de tom (uma vez por player). */
   const ligarMotor = useCallback(async (): Promise<Motor | null> => {
@@ -143,9 +140,7 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
   }
 
   function mudarTom(delta: number) {
-    const base = semitonsDoAudio(acompanha, offsetCifra, manual);
-    setAcompanha(false);
-    setManual(Math.max(-LIMITE_SEMITONS, Math.min(LIMITE_SEMITONS, base + delta)));
+    setManual((m) => Math.max(-LIMITE_SEMITONS, Math.min(LIMITE_SEMITONS, m + delta)));
   }
 
   async function obterArquivo(): Promise<File | null> {
@@ -162,14 +157,26 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
     }
   }
 
-  async function compartilhar() {
+  const [dicaMoises, setDicaMoises] = useState(false);
+
+  /** Celular: abre o compartilhar com o arquivo (escolha o Moises). Computador: baixa e abre o Moises. */
+  async function abrirNoMoises() {
+    // Abre a aba já no clique (navegadores bloqueiam abas abertas depois de um download).
+    const podeCompartilhar = typeof navigator.canShare === "function";
+    const aba = podeCompartilhar ? null : window.open("about:blank", "_blank");
     const f = await obterArquivo();
-    if (!f) return;
-    if (navigator.canShare?.({ files: [f] })) {
-      await navigator.share({ files: [f], title: titulo }).catch(() => {});
-    } else {
-      salvar(f);
+    if (!f) {
+      aba?.close();
+      return;
     }
+    if (podeCompartilhar && navigator.canShare({ files: [f] })) {
+      await navigator.share({ files: [f], title: titulo }).catch(() => {});
+      return;
+    }
+    salvar(f);
+    setDicaMoises(true);
+    if (aba) aba.location.href = "https://moises.ai/";
+    else window.open("https://moises.ai/", "_blank", "noopener");
   }
 
   function salvar(f: File) {
@@ -242,32 +249,27 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex items-center gap-1" role="group" aria-label="Tom do áudio">
-          <span className="mr-1 text-sm text-muted-foreground">Tom do áudio</span>
-          <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(-1)} disabled={!!semTom} aria-label="Baixar meio tom do áudio">
-            <Minus />
-          </Button>
-          <span className="min-w-16 text-center text-sm font-semibold" aria-live="polite">
-            {tomAtual ? <span className="text-chord">{tomAtual}</span> : null}{" "}
-            <span className="text-muted-foreground">({rotuloSemitons(semitons)})</span>
-          </span>
-          <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(1)} disabled={!!semTom} aria-label="Subir meio tom do áudio">
-            <Plus />
-          </Button>
-          {offsetCifra !== null && !semTom && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setAcompanha((a) => !a)}
-              aria-pressed={acompanha}
-              title={acompanha ? "O áudio segue o tom da cifra" : "Tom do áudio independente da cifra"}
-              className={cn(acompanha && "text-primary")}
-            >
-              {acompanha ? <Link2 /> : <Link2Off />} {acompanha ? "Segue a cifra" : "Separado"}
+        {naCifra ? (
+          <p className="text-sm" aria-live="polite">
+            <span className="text-muted-foreground">Tocando em </span>
+            <strong className="text-chord">{tomAtual ?? rotuloSemitons(semitons)}</strong>
+            <span className="text-muted-foreground"> — o tom da cifra</span>
+          </p>
+        ) : (
+          <div className="flex items-center gap-1" role="group" aria-label="Tom do áudio">
+            <span className="mr-1 text-sm text-muted-foreground">Tom do áudio</span>
+            <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(-1)} disabled={!!semTom} aria-label="Baixar meio tom do áudio">
+              <Minus />
             </Button>
-          )}
-        </div>
+            <span className="min-w-16 text-center text-sm font-semibold" aria-live="polite">
+              {tomAtual ? <span className="text-chord">{tomAtual}</span> : null}{" "}
+              <span className="text-muted-foreground">({rotuloSemitons(semitons)})</span>
+            </span>
+            <Button type="button" variant="outline" size="icon-sm" onClick={() => mudarTom(1)} disabled={!!semTom} aria-label="Subir meio tom do áudio">
+              <Plus />
+            </Button>
+          </div>
+        )}
 
         <label className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">Velocidade</span>
@@ -291,14 +293,18 @@ export function PlayerEnsaio({ url, titulo, tomOriginal }: { url: string; titulo
       {semTom && <p className="text-sm text-amber-700 dark:text-amber-400">{semTom}</p>}
 
       <div className="flex flex-wrap gap-2 border-t pt-3">
-        {podeCompartilhar && (
-          <Button type="button" variant="outline" size="sm" onClick={compartilhar} disabled={arquivo === "baixando"}>
-            <Share2 /> Abrir no Moises / Compartilhar
-          </Button>
-        )}
+        <Button type="button" variant="outline" size="sm" onClick={abrirNoMoises} disabled={arquivo === "baixando"}>
+          <Share2 /> Abrir no Moises
+        </Button>
         <Button type="button" variant="ghost" size="sm" onClick={baixar} disabled={arquivo === "baixando"}>
           {arquivo === "baixando" ? <Loader2 className="animate-spin" /> : <Download />} Baixar áudio
         </Button>
+        {dicaMoises && (
+          <p className="w-full text-sm text-muted-foreground">
+            Áudio baixado. No Moises, toque em <strong>Upload</strong> e escolha o arquivo
+            &quot;{nomeDoArquivo(titulo, tomOriginal, url)}&quot;.
+          </p>
+        )}
         {arquivo === "erro" && <span className="text-sm text-amber-700 dark:text-amber-400">Não foi possível preparar o arquivo.</span>}
       </div>
     </div>

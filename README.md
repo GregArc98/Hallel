@@ -95,14 +95,15 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
 
 - Tocar/pausar, **voltar/avançar 10 s**, posição, **velocidade** 0,5×–1,25× (sem mudar o tom)
   e **tom do áudio − / +** (até ±6 semitons).
-- Dentro da cifra, o tom do áudio **segue a cifra** (ex.: original E, culto em G → áudio em G);
-  "Separado" deixa ajustar o áudio à parte.
+- Dentro da cifra, o áudio **toca no tom da cifra** (o − / + do topo; aparece também no modo
+  Letra). Fora da cifra, o player tem o próprio − / +.
 - A mudança de tom roda no aparelho com **SoundTouchJS** (`@soundtouchjs/audio-worklet`,
   licença MPL-2.0), num AudioWorklet. O áudio só passa pelo processamento quando o tom sai do
   original; o arquivo do processador é copiado para `public/` antes de `dev`/`build`
   (`npm run copiar-processador`). Se o armazenamento não permitir a leitura (CORS), o player
   avisa e segue no tom original.
-- **Abrir no Moises / Compartilhar** (celular) e **Baixar áudio**, com o nome da música.
+- **Abrir no Moises**: no celular abre o compartilhar com o arquivo; no computador baixa o
+  áudio e abre moises.ai. **Baixar áudio** salva com o nome da música.
 
 ## Deploy (Vercel)
 
