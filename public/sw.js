@@ -14,7 +14,7 @@ const ESTATICOS = `hallel-estaticos-${VERSAO}`;
 const AUDIOS = `hallel-audios-${VERSAO}`;
 const CACHES_ATUAIS = [PAGINAS, ESTATICOS, AUDIOS];
 const OFFLINE = "/offline";
-const NAO_GUARDAR = [/^\/entrar/, /^\/auth\//, /^\/api\//, /^\/sem-acesso/];
+const NAO_GUARDAR = [/^\/entrar/, /^\/auth\//, /^\/api\//, /^\/sem-acesso/, /^\/redefinir-senha/, /^\/convite\//];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

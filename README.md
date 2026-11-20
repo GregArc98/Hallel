@@ -127,9 +127,12 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
 - **Regras de acesso (RLS):** só integrantes ativos veem os dados da própria igreja;
   só admins alteram; membros veem só escalas/repertórios **publicados**;
   indisponibilidade só para a própria pessoa e admins; a igreja nunca fica sem admin.
+- **Login:** e-mail e senha (Supabase Auth), com *Esqueci minha senha* por e-mail
+  (`/redefinir-senha`, também no Perfil). Google opcional.
 - **Entrada na equipe:** o líder manda o **link de convite da igreja** (`/convite/<código>`)
-  no grupo; cada pessoa entra com o e-mail e cria o próprio perfil (nome, WhatsApp), que fica
-  **pendente** até um líder aprovar e definir papel e funções (`entrar_na_equipe`). Quem o
+  no grupo; cada pessoa cria a conta (nome, WhatsApp, e-mail, senha), guardando os dados e o
+  convite na conta. Ao confirmar o e-mail, o retorno (`/auth/callback`) já envia o pedido, que
+  fica **pendente** até um líder aprovar e definir papel e funções (`entrar_na_equipe`). Quem o
   líder já cadastrou pelo e-mail é ligado direto. O link pode ser renovado ou desativado.
 - Cada pessoa edita o próprio nome e WhatsApp (`atualizar_meu_perfil`); papel, funções e
   "ativo" só líderes. **Último acesso** (`acesso_integrante`) é visível só para líderes.
@@ -143,23 +146,35 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
    - *Site URL:* a URL de produção (ex.: `https://hallel.vercel.app`) ou `http://localhost:3000`.
    - *Redirect URLs:* `http://localhost:3000/**`, `http://*:3000/**` (rede local) e
      `https://*.vercel.app/**`.
-2. **Primeiro admin** (só ao criar um banco novo; SQL Editor), trocando nome e e-mail:
+2. **E-mail e senha:** em *Authentication → Sign In / Providers → Email*, deixe **Confirm
+   email** ligado e a senha mínima em **8** caracteres.
+3. **Modelos de e-mail** (*Authentication → Emails*), para os links funcionarem em qualquer
+   aparelho (por padrão só abrem no mesmo navegador em que foram pedidos):
+   - *Confirm signup*:
+     ```html
+     <h2>Bem-vindo ao Hallel</h2>
+     <p>Toque no botão para confirmar seu e-mail e enviar seu pedido ao líder:</p>
+     <p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Confirmar meu e-mail</a></p>
+     ```
+   - *Reset Password*:
+     ```html
+     <h2>Nova senha do Hallel</h2>
+     <p>Toque no botão para criar uma senha nova:</p>
+     <p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Criar nova senha</a></p>
+     ```
+   Se não foi você quem pediu, é só ignorar o e-mail.
+4. **Primeiro admin** (só ao criar um banco novo; SQL Editor), trocando nome e e-mail:
    ```sql
    update public.integrante set email = 'seu@email.com', papel = 'admin'
    where nome = 'Matheus';
    ```
-   Depois é só entrar com esse e-mail. Os demais integrantes recebem o e-mail pelo
-   app (etapa 5) ou pelo mesmo SQL (sem `papel = 'admin'`).
-3. **(Recomendado) Link mágico que funciona em qualquer aparelho.** Por padrão o link
-   só funciona no mesmo navegador em que foi pedido. Em *Authentication → Emails →
-   Magic Link*, troque o link do modelo por:
-   ```html
-   <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Entrar no Hallel</a>
-   ```
-4. **(Opcional) Google:** crie um OAuth Client no Google Cloud (tipo *Web*, redirect
+   Depois crie a conta pelo link de convite (ou, se já tiver conta, use *Esqueci minha senha*).
+   Quem o líder cadastrar com e-mail em *Novo integrante* também cria a conta pelo convite e já
+   entra aprovado.
+5. **(Opcional) Google:** crie um OAuth Client no Google Cloud (tipo *Web*, redirect
    `https://SEU-PROJETO.supabase.co/auth/v1/callback`), ative o provedor em
    *Authentication → Sign In / Providers → Google* e use `NEXT_PUBLIC_LOGIN_GOOGLE=1`.
-5. **E-mails:** o envio padrão do Supabase tem limite baixo por hora — suficiente para
+6. **E-mails:** o envio padrão do Supabase tem limite baixo por hora — suficiente para
    testes. Para a equipe toda, configure um SMTP próprio (ex.: Resend, plano grátis) em
    *Authentication → Emails → SMTP Settings*.
 
@@ -181,7 +196,9 @@ src/
   app/api/audio/upload/   autoriza o envio de áudio para o Vercel Blob
   app/manifest.ts, app/offline/  manifesto do app instalável e tela "sem internet"
   components/pwa/         registro do SW, aviso offline, salvar repertório, baixar áudios
-  app/entrar, app/auth/   login (link mágico / Google), retorno e saída
+  app/entrar, app/auth/   login (e-mail e senha / Google), retorno dos e-mails e saída
+  app/redefinir-senha/    nova senha (pelo e-mail "Esqueci minha senha" ou pelo Perfil)
+  lib/acesso/             regras da senha e mensagens de erro do login
   hooks/                  preferências locais, tela sempre ligada, rolagem automática
   lib/auth.ts             sessão do usuário e igreja atual (Data Access Layer)
   lib/supabase/           clientes (servidor/navegador), proxy de sessão e tipos do banco

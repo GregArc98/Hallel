@@ -1,40 +1,75 @@
 "use client";
 
-import { Mail, MailCheck } from "lucide-react";
+import { KeyRound, LogIn, MailCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { CampoSenha } from "@/components/campo-senha";
 import { Button } from "@/components/ui/button";
+import { mensagemDoErro, normalizarEmail } from "@/lib/acesso/senha";
 import { createClient } from "@/lib/supabase/client";
 
-function urlDeRetorno(proximo: string) {
+const campo =
+  "h-12 w-full rounded-lg border bg-background px-3 text-base outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+
+export function urlDeRetorno(proximo: string) {
   const url = new URL("/auth/callback", window.location.origin);
   url.searchParams.set("proximo", proximo);
   return url.toString();
 }
 
-export function FormularioEntrar({ proximo, google }: { proximo: string; google: boolean }) {
-  const [email, setEmail] = useState("");
-  const [estado, setEstado] = useState<"livre" | "enviando" | "enviado">("livre");
-  const [erro, setErro] = useState<string | null>(null);
+type Tela = "entrar" | "recuperar" | "recuperacao-enviada";
 
-  async function enviarLink(e: React.FormEvent) {
+export function FormularioEntrar({ proximo, google }: { proximo: string; google: boolean }) {
+  const router = useRouter();
+  const [tela, setTela] = useState<Tela>("entrar");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [semConfirmar, setSemConfirmar] = useState(false);
+  const [reenviado, setReenviado] = useState(false);
+
+  async function entrar(e: React.FormEvent) {
     e.preventDefault();
     setErro(null);
-    setEstado("enviando");
-    const { error } = await createClient().auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: urlDeRetorno(proximo) },
-    });
+    setSemConfirmar(false);
+    setEnviando(true);
+    const { error } = await createClient().auth.signInWithPassword({ email: normalizarEmail(email), password: senha });
     if (error) {
-      setEstado("livre");
-      setErro(
-        error.status === 429
-          ? "Muitos pedidos seguidos. Espere alguns minutos e tente de novo."
-          : "Não foi possível enviar o link. Confira o e-mail e tente de novo.",
-      );
+      setEnviando(false);
+      setErro(mensagemDoErro(error, "entrar"));
+      setSemConfirmar(error.code === "email_not_confirmed" || /email not confirmed/i.test(error.message));
       return;
     }
-    setEstado("enviado");
+    router.replace(proximo);
+    router.refresh(); // o servidor passa a enxergar a sessão nova
+  }
+
+  async function reenviarConfirmacao() {
+    setErro(null);
+    const { error } = await createClient().auth.resend({
+      type: "signup",
+      email: normalizarEmail(email),
+      options: { emailRedirectTo: urlDeRetorno(proximo) },
+    });
+    if (error) setErro(mensagemDoErro(error, "recuperar"));
+    else setReenviado(true);
+  }
+
+  async function pedirNovaSenha(e: React.FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    setEnviando(true);
+    const { error } = await createClient().auth.resetPasswordForEmail(normalizarEmail(email), {
+      redirectTo: urlDeRetorno("/redefinir-senha"),
+    });
+    setEnviando(false);
+    if (error) {
+      setErro(mensagemDoErro(error, "recuperar"));
+      return;
+    }
+    setTela("recuperacao-enviada");
   }
 
   async function entrarComGoogle() {
@@ -46,22 +81,73 @@ export function FormularioEntrar({ proximo, google }: { proximo: string; google:
     if (error) setErro("Não foi possível abrir o login do Google.");
   }
 
-  if (estado === "enviado") {
+  const aviso = erro && (
+    <div role="alert" className="space-y-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+      <p>{erro}</p>
+      {semConfirmar &&
+        (reenviado ? (
+          <p className="text-foreground">Enviamos de novo. Olhe também a caixa de spam.</p>
+        ) : (
+          <Button type="button" variant="outline" size="sm" onClick={reenviarConfirmacao}>
+            Reenviar e-mail de confirmação
+          </Button>
+        ))}
+    </div>
+  );
+
+  const campoEmail = (
+    <label className="block space-y-1.5">
+      <span className="text-sm font-medium">E-mail</span>
+      <input
+        type="email"
+        required
+        autoComplete="email"
+        inputMode="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="voce@exemplo.com"
+        className={campo}
+      />
+    </label>
+  );
+
+  if (tela === "recuperacao-enviada") {
     return (
       <div className="space-y-4 rounded-xl border p-6 text-center">
         <MailCheck className="mx-auto size-10 text-primary" aria-hidden />
         <div className="space-y-1">
-          <p className="font-semibold">Enviamos um link para</p>
+          <p className="font-semibold">Enviamos um e-mail para</p>
           <p className="break-all">{email}</p>
         </div>
         <p className="text-sm text-muted-foreground">
-          Abra o e-mail <strong>neste mesmo aparelho</strong> e toque em entrar. Se não chegar em
-          alguns minutos, olhe a caixa de spam.
+          Abra a mensagem e toque em <strong>Criar nova senha</strong>. Se não chegar em alguns
+          minutos, olhe a caixa de spam.
         </p>
-        <Button variant="ghost" onClick={() => setEstado("livre")}>
-          Usar outro e-mail
+        <Button variant="ghost" onClick={() => setTela("entrar")}>
+          Voltar para entrar
         </Button>
       </div>
+    );
+  }
+
+  if (tela === "recuperar") {
+    return (
+      <form onSubmit={pedirNovaSenha} className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">Esqueci minha senha</h2>
+          <p className="text-sm text-muted-foreground">
+            Digite seu e-mail. Vamos mandar um link para você criar uma senha nova.
+          </p>
+        </div>
+        {campoEmail}
+        {aviso}
+        <Button type="submit" size="lg" className="w-full" disabled={enviando}>
+          <KeyRound /> {enviando ? "Enviando…" : "Enviar link para nova senha"}
+        </Button>
+        <Button type="button" variant="ghost" className="w-full" onClick={() => setTela("entrar")}>
+          Voltar para entrar
+        </Button>
+      </form>
     );
   }
 
@@ -84,33 +170,25 @@ export function FormularioEntrar({ proximo, google }: { proximo: string; google:
         </>
       )}
 
-      <form onSubmit={enviarLink} className="space-y-3">
-        <label className="block space-y-2">
-          <span className="text-sm font-medium">Seu e-mail</span>
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            inputMode="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="voce@exemplo.com"
-            className="h-12 w-full rounded-lg border bg-background px-3 text-base outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-          />
-        </label>
-        <Button type="submit" size="lg" className="w-full" disabled={estado === "enviando"}>
-          <Mail /> {estado === "enviando" ? "Enviando…" : "Receber link de acesso"}
+      <form onSubmit={entrar} className="space-y-4">
+        {campoEmail}
+        <CampoSenha rotulo="Senha" value={senha} onChange={setSenha} />
+        {aviso}
+        <Button type="submit" size="lg" className="w-full" disabled={enviando}>
+          <LogIn /> {enviando ? "Entrando…" : "Entrar"}
         </Button>
-        <p className="text-center text-xs text-muted-foreground">
-          Sem senha: você recebe um link no e-mail e entra com um toque.
-        </p>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full"
+          onClick={() => {
+            setErro(null);
+            setTela("recuperar");
+          }}
+        >
+          Esqueci minha senha
+        </Button>
       </form>
-
-      {erro && (
-        <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {erro}
-        </p>
-      )}
     </div>
   );
 }

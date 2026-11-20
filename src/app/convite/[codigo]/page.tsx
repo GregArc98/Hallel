@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { SairButton } from "@/components/sair-button";
 import { getSessao } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { FormularioEntrar } from "../../entrar/formulario-entrar";
+import { FormularioCadastro } from "./formulario-cadastro";
 import { FormularioPerfil } from "./formulario-perfil";
 
 export const metadata: Metadata = { title: "Entrar na equipe" };
@@ -39,15 +39,20 @@ export default async function ConvitePage({ params }: PageProps<"/convite/[codig
       {!sessao ? (
         <>
           <ol className="space-y-1 rounded-xl bg-muted px-4 py-3 text-sm">
-            <li>1. Digite seu e-mail e abra o link que chegar.</li>
-            <li>2. Preencha seu nome e WhatsApp.</li>
-            <li>3. O líder confirma e pronto.</li>
+            <li>1. Preencha seus dados e crie uma senha.</li>
+            <li>2. Confirme o e-mail pela mensagem que chegar.</li>
+            <li>3. O líder confirma seu cadastro e pronto.</li>
           </ol>
-          <FormularioEntrar proximo={`/convite/${codigo}`} google={false} />
+          <FormularioCadastro codigo={codigo} />
         </>
       ) : (
         <>
-          <FormularioPerfil codigo={codigo} email={sessao.usuario.email ?? ""} />
+          <FormularioPerfil
+            codigo={codigo}
+            email={sessao.usuario.email ?? ""}
+            nome={sessao.usuario.cadastro.nome ?? ""}
+            telefone={sessao.usuario.cadastro.telefone ?? ""}
+          />
           <div className="flex justify-center">
             <SairButton />
           </div>

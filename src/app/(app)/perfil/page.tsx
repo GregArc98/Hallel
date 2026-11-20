@@ -50,6 +50,13 @@ export default async function PerfilPage() {
       </section>
 
       <section className="space-y-2 rounded-xl border p-4">
+        <h2 className="font-semibold">Senha</h2>
+        <Link href="/redefinir-senha" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+          Trocar minha senha
+        </Link>
+      </section>
+
+      <section className="space-y-2 rounded-xl border p-4">
         <h2 className="font-semibold">Aparência</h2>
         <EscolherTema />
       </section>

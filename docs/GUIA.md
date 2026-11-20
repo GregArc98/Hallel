@@ -5,12 +5,13 @@ Endereço: **https://hallel-three.vercel.app**
 ## Para todos
 
 **Primeira vez:** abra o **link de convite** que o líder mandou no grupo do WhatsApp.
-1. Digite seu e-mail e toque em *Receber link de acesso*; abra o e-mail e toque em *Entrar no Hallel*.
-2. Preencha seu **nome** e **WhatsApp** e toque em *Pedir para entrar na equipe*.
+1. Preencha **nome**, **WhatsApp**, **e-mail**, crie uma **senha** e toque em *Pedir para entrar na equipe*.
+2. Abra o e-mail que chegar e toque em *Confirmar meu e-mail* (só nesta primeira vez).
 3. Aguarde o líder aprovar. Pronto: abra o Hallel e suas escalas aparecem.
 
-**Depois:** é só abrir o Hallel — você continua conectado. Se sair da conta, entre de novo
-com o mesmo e-mail (não tem senha). Nome e WhatsApp você corrige no **Perfil**.
+**Depois:** é só abrir o Hallel — você continua conectado. Se sair da conta, entre com seu
+**e-mail e senha**. Esqueceu a senha? Toque em *Esqueci minha senha* e crie uma nova pelo
+e-mail. Nome, WhatsApp e senha você troca no **Perfil**.
 
 **Instalar no celular** (recomendado):
 - Android (Chrome): menu ⋮ → *Instalar app*.

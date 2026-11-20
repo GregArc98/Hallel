@@ -42,7 +42,7 @@ export default async function EditarIntegrantePage({ params, searchParams }: Pag
           {!membro.aprovado ? "" : membro.email
             ? membro.entrouNoApp
               ? "Já entrou no app."
-              : "Ainda não entrou no app. Avise que é só abrir o Hallel e entrar com este e-mail."
+              : "Ainda não entrou no app. Mande o link de convite da equipe: ela cria a senha com este e-mail e já entra aprovada."
             : "Sem e-mail: a pessoa aparece nas escalas, mas não consegue entrar no app."}
         </p>
       </div>

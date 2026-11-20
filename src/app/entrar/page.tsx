@@ -9,7 +9,7 @@ import { FormularioEntrar } from "./formulario-entrar";
 export const metadata: Metadata = { title: "Entrar" };
 
 const ERROS: Record<string, string> = {
-  link: "Esse link não vale mais (ele expira e só funciona uma vez). Peça um novo abaixo.",
+  link: "Esse link não vale mais (ele expira e só funciona uma vez). Para criar uma senha nova, toque em “Esqueci minha senha”.",
   provedor: "Não foi possível entrar com o Google. Tente de novo ou use o e-mail.",
 };
 
@@ -32,6 +32,9 @@ export default async function EntrarPage({ searchParams }: PageProps<"/entrar">)
         </p>
       )}
       <FormularioEntrar proximo={proximo} google={LOGIN_GOOGLE} />
+      <p className="text-center text-sm text-muted-foreground">
+        Primeira vez? Abra o <strong>link de convite</strong> que o líder mandou no grupo do WhatsApp.
+      </p>
       {params.saiu === "1" && <LimparAoSair />}
     </main>
   );
