@@ -2,8 +2,11 @@ import { CalendarPlus, ChevronLeft, ChevronRight, ListMusic, Pencil, Plus, Send,
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BotaoWhatsapp, OpcaoAvisar } from "@/components/avisos/publicacao";
 import { Button } from "@/components/ui/button";
 import { exigirIntegrante } from "@/lib/auth";
+import { cultoParaWhatsapp, textoWhatsappEscala } from "@/lib/avisos/mensagens";
+import { enderecoDoApp } from "@/lib/avisos/publicacao";
 import { carregarMes } from "@/lib/escala/dados";
 import {
   ICONE_PERIODO,
@@ -34,6 +37,14 @@ export default async function EscalaPage({ searchParams }: PageProps<"/escala">)
     (d) => cultos.filter((c) => c.tipo === "regular" && c.data === d).length < 2,
   );
   const rascunhos = cultos.filter((c) => !c.escalaPublicada).length;
+  const textoWhatsapp =
+    ctx.admin && cultos.length > 0 && rascunhos === 0
+      ? textoWhatsappEscala(
+          `Escala de ${nomeDoMes(mes)}`,
+          cultos.map((c) => cultoParaWhatsapp(c, funcoes, nome)),
+          `${await enderecoDoApp()}/escala?mes=${chaveMes(mes)}`,
+        )
+      : null;
 
   return (
     <div className="space-y-4">
@@ -85,13 +96,19 @@ export default async function EscalaPage({ searchParams }: PageProps<"/escala">)
               : `${rascunhos} culto${rascunhos > 1 ? "s" : ""} em rascunho (a equipe ainda não vê).`}
           </p>
           {rascunhos > 0 ? (
-            <Button type="submit" name="publicar" value="1">
-              <Send /> Publicar escala do mês
-            </Button>
+            <>
+              <OpcaoAvisar />
+              <Button type="submit" name="publicar" value="1">
+                <Send /> Publicar escala do mês
+              </Button>
+            </>
           ) : (
-            <Button type="submit" name="publicar" value="0" variant="ghost">
-              <Undo2 /> Voltar para rascunho
-            </Button>
+            <>
+              {textoWhatsapp && <BotaoWhatsapp texto={textoWhatsapp} />}
+              <Button type="submit" name="publicar" value="0" variant="ghost">
+                <Undo2 /> Voltar para rascunho
+              </Button>
+            </>
           )}
         </form>
       )}

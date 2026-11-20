@@ -18,3 +18,5 @@ export const SUPABASE_PUBLISHABLE_KEY = obrigatoria(
 );
 /** Mostra o botão "Entrar com Google" (exige configurar o provedor no Supabase). */
 export const LOGIN_GOOGLE = process.env.NEXT_PUBLIC_LOGIN_GOOGLE === "1";
+/** Chave pública dos avisos no celular (Web Push). Vazia = avisos no celular desligados. */
+export const VAPID_PUBLICA = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";

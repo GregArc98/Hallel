@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AtivarAvisos } from "@/components/avisos/ativar-avisos";
+import { AvisoEmail } from "@/components/avisos/aviso-email";
 import { SairButton } from "@/components/sair-button";
 import { exigirIntegrante } from "@/lib/auth";
 import { carregarEquipe, carregarFuncoes, resumoFuncoes } from "@/lib/equipe/dados";
+import { VAPID_PUBLICA } from "@/lib/env";
+import { createClient } from "@/lib/supabase/server";
 import { MeusDados } from "./meus-dados";
 import { EscolherTema } from "./tema";
 
@@ -11,9 +15,11 @@ export const metadata: Metadata = { title: "Perfil" };
 
 export default async function PerfilPage() {
   const ctx = await exigirIntegrante();
-  const [[eu], funcoes] = await Promise.all([
+  const supabase = await createClient();
+  const [[eu], funcoes, { data: preferencias }] = await Promise.all([
     carregarEquipe(ctx.igreja.id, ctx.integranteId),
     carregarFuncoes(ctx.igreja.id),
+    supabase.from("integrante").select("avisos_email").eq("id", ctx.integranteId).maybeSingle(),
   ]);
 
   return (
@@ -47,6 +53,17 @@ export default async function PerfilPage() {
             </>
           )}
         </p>
+      </section>
+
+      <section id="avisos" className="space-y-3 rounded-xl border p-4">
+        <div>
+          <h2 className="font-semibold">Avisos</h2>
+          <p className="text-sm text-muted-foreground">
+            Quando sair a escala ou o repertório de um culto em que você está.
+          </p>
+        </div>
+        <AtivarAvisos chave={VAPID_PUBLICA} />
+        {ctx.usuario.email && <AvisoEmail ativo={preferencias?.avisos_email ?? true} email={ctx.usuario.email} />}
       </section>
 
       <section className="space-y-2 rounded-xl border p-4">

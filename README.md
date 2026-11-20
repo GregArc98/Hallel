@@ -57,6 +57,8 @@ Copie `.env.example` para `.env.local`. Na Vercel, cadastre as mesmas em
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project Settings → API Keys (`sb_publishable_…`) | Banco e login |
 | `NEXT_PUBLIC_LOGIN_GOOGLE` | `1` para mostrar "Entrar com Google" | Opcional |
 | `BLOB_READ_WRITE_TOKEN` | Vercel → Storage → Blob (ver abaixo) | Upload dos áudios (opcional: sem ele, só links externos) |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys` (par único do app) | Avisos no celular (opcional). A privada é **secreta** |
+| `SMTP_USUARIO` / `SMTP_SENHA` | Gmail + **senha de app** (Conta Google → Segurança → Senhas de app) | Avisos por e-mail (opcional). `SMTP_SERVIDOR`/`SMTP_PORTA` para outro provedor |
 
 As chaves `NEXT_PUBLIC_*` são públicas por natureza (vão para o navegador); quem
 protege os dados são as regras de RLS do banco. **Nunca** coloque a chave
@@ -110,13 +112,29 @@ provedor fica em `src/lib/storage/audio.ts` — trocar por R2/B2 mexe só ali e 
 - **Abrir no Moises**: no celular abre o compartilhar com o arquivo; no computador baixa o
   áudio e abre moises.ai. **Baixar áudio** salva com o nome da música.
 
+## Avisos (celular e e-mail)
+
+- Ao **publicar** a escala (do culto ou do mês) ou o repertório, com *Avisar os escalados*
+  marcado, cada escalado recebe **um** aviso com os cultos dele (`lib/avisos/mensagens.ts`).
+  O envio roda depois da resposta (`after`), então publicar continua rápido.
+- **Celular (Web Push):** cada pessoa ativa no aparelho (Perfil ou cartão do Início); a inscrição
+  fica em `inscricao_push` (só o dono vê). O `sw.js` mostra a notificação e abre a página ao
+  tocar. iPhone: só com o app adicionado à Tela de Início (iOS 16.4+). Inscrições vencidas
+  (404/410) são apagadas no envio. Sair da conta cancela a inscrição do aparelho.
+- **E-mail (SMTP):** ligado por padrão (`integrante.avisos_email`), desliga no Perfil.
+- **WhatsApp:** depois de publicar, *Mandar no grupo do WhatsApp* abre `wa.me` com o texto pronto.
+- Só líderes leem destinatários e inscrições (`avisos_destinatarios`, `avisos_inscricoes`),
+  pelo próprio login. Sem as variáveis de um canal, ele é simplesmente pulado.
+
 ## Deploy (Vercel)
 
 - Projeto `hallel` (time gregarc98), ligado ao GitHub: **push na `main` → produção**;
   cada PR ganha um link de pré-visualização (protegido por login da Vercel).
 - Funções em **São Paulo (`gru1`)**, perto do banco; Node 22.
 - Variáveis já cadastradas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
-  `NEXT_PUBLIC_LOGIN_GOOGLE` e `BLOB_READ_WRITE_TOKEN` (store `hallel-audios`, em `gru1`).
+  `NEXT_PUBLIC_LOGIN_GOOGLE`, `BLOB_READ_WRITE_TOKEN` (store `hallel-audios`, em `gru1`) e
+  `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. Os segredos dos avisos (`VAPID_PRIVATE_KEY`, `SMTP_USUARIO`,
+  `SMTP_SENHA`) são cadastrados direto no painel, como *Sensitive*.
 - No Supabase, a URL de produção precisa estar em *Authentication → URL Configuration*
   (Site URL e Redirect URLs `https://hallel-three.vercel.app/**`).
 
@@ -199,6 +217,7 @@ src/
   app/entrar, app/auth/   login (e-mail e senha / Google), retorno dos e-mails e saída
   app/redefinir-senha/    nova senha (pelo e-mail "Esqueci minha senha" ou pelo Perfil)
   lib/acesso/             regras da senha e mensagens de erro do login
+  lib/avisos/             avisos: textos (celular, e-mail, WhatsApp), envio e publicação
   hooks/                  preferências locais, tela sempre ligada, rolagem automática
   lib/auth.ts             sessão do usuário e igreja atual (Data Access Layer)
   lib/supabase/           clientes (servidor/navegador), proxy de sessão e tipos do banco

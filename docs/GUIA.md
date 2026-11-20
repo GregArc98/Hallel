@@ -17,6 +17,11 @@ e-mail. Nome, WhatsApp e senha você troca no **Perfil**.
 - Android (Chrome): menu ⋮ → *Instalar app*.
 - iPhone (Safari): botão Compartilhar → *Adicionar à Tela de Início*.
 
+**Avisos:** em **Perfil → Avisos**, toque em *Ativar avisos no celular* (ou no cartão do
+Início). Você recebe uma notificação quando sair a escala ou o repertório de um culto em que
+está. No iPhone, primeiro adicione o Hallel à Tela de Início e abra por lá. O aviso também
+chega por e-mail; para desligar, desmarque *Receber também por e-mail* no Perfil.
+
 **Início:** mostra o seu próximo culto (data, período e sua função), as músicas na ordem
 com o tom de cada uma, e o botão **▶ Modo culto**.
 
@@ -67,12 +72,15 @@ você **não pode**. O líder vê isso na hora de montar a escala.
 1. *Criar cultos de domingo* (manhã e noite) e, se precisar, *Culto avulso*.
 2. Em cada culto, *Editar*: aparecem primeiro quem faz a função naquele período e quem
    tocou menos no mês. Marcas: ⛔ não pode · já em outra função · em outro culto.
-3. *Publicar escala do mês* — só então a equipe vê.
+3. *Publicar escala do mês* — só então a equipe vê. Com *Avisar os escalados* marcado, cada
+   pessoa recebe um aviso (celular e e-mail) com os cultos dela.
+4. Depois de publicar, *Mandar no grupo do WhatsApp* abre o WhatsApp com a escala pronta.
 
 **Repertório (cada culto)**
 1. Escala → culto → *Repertório*.
 2. Busque e adicione as músicas, arraste (ou ↑ ↓) para ordenar, escolha o tom do culto e
    escreva observações ("entrar só piano").
-3. *Salvar* e *Publicar repertório*.
+3. *Salvar* e *Publicar repertório* (com a escala já publicada, os escalados recebem o aviso).
+4. *Mandar no grupo do WhatsApp* envia a lista de músicas com os tons.
 
 **Início do líder:** "Pendências das próximas semanas" mostra o que falta em cada culto.

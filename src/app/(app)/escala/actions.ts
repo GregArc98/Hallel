@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { exigirAdmin, exigirIntegrante } from "@/lib/auth";
+import { avisarEscalaPublicada, avisarRepertorioPublicado } from "@/lib/avisos/publicacao";
 import { carregarFuncoes } from "@/lib/equipe/dados";
 import { carregarCulto } from "@/lib/escala/dados";
 import { chaveMes, domingosDoMes, lerMes, mesDaData, primeiroEUltimoDia } from "@/lib/escala/datas";
@@ -157,7 +158,14 @@ export async function publicarCulto(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const publicar = formData.get("publicar") === "1";
   const supabase = await createClient();
-  await supabase.from("culto").update({ escala_publicada: publicar }).eq("id", id).eq("igreja_id", ctx.igreja.id);
+  const { data: mudou } = await supabase
+    .from("culto")
+    .update({ escala_publicada: publicar })
+    .eq("id", id)
+    .eq("igreja_id", ctx.igreja.id)
+    .eq("escala_publicada", !publicar)
+    .select("id");
+  if (publicar && formData.get("avisar") === "1") await avisarEscalaPublicada(ctx, (mudou ?? []).map((c) => c.id));
   revalidarEscala();
   redirect(String(formData.get("voltar") ?? "") === "mes" ? `/escala?mes=${formData.get("mes")}` : `/escala/${id}`);
 }
@@ -169,13 +177,15 @@ export async function publicarMes(formData: FormData): Promise<void> {
   const publicar = formData.get("publicar") === "1";
   const [de, ate] = primeiroEUltimoDia(mes);
   const supabase = await createClient();
-  await supabase
+  const { data: mudaram } = await supabase
     .from("culto")
     .update({ escala_publicada: publicar })
     .eq("igreja_id", ctx.igreja.id)
     .gte("data", de)
     .lte("data", ate)
-    .eq("escala_publicada", !publicar);
+    .eq("escala_publicada", !publicar)
+    .select("id");
+  if (publicar && formData.get("avisar") === "1") await avisarEscalaPublicada(ctx, (mudaram ?? []).map((c) => c.id));
   revalidarEscala();
   redirect(`/escala?mes=${chaveMes(mes)}`);
 }
@@ -272,7 +282,14 @@ export async function publicarRepertorio(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const publicar = formData.get("publicar") === "1";
   const supabase = await createClient();
-  await supabase.from("culto").update({ repertorio_publicado: publicar }).eq("id", id).eq("igreja_id", ctx.igreja.id);
+  const { data: mudou } = await supabase
+    .from("culto")
+    .update({ repertorio_publicado: publicar })
+    .eq("id", id)
+    .eq("igreja_id", ctx.igreja.id)
+    .eq("repertorio_publicado", !publicar)
+    .select("id");
+  if (publicar && mudou?.length && formData.get("avisar") === "1") await avisarRepertorioPublicado(ctx, id);
   revalidarEscala();
   revalidatePath(`/culto/${id}`);
   redirect(`/escala/${id}/repertorio`);

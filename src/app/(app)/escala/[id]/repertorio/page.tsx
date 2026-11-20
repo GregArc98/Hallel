@@ -3,8 +3,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BotaoWhatsapp, OpcaoAvisar } from "@/components/avisos/publicacao";
 import { Button } from "@/components/ui/button";
 import { exigirAdmin } from "@/lib/auth";
+import { textoWhatsappRepertorio } from "@/lib/avisos/mensagens";
+import { enderecoDoApp } from "@/lib/avisos/publicacao";
 import { carregarCulto, carregarRepertorio } from "@/lib/escala/dados";
 import { ICONE_PERIODO, NOME_PERIODO, dataCurta } from "@/lib/escala/datas";
 import { createClient } from "@/lib/supabase/server";
@@ -29,6 +32,14 @@ export default async function RepertorioPage({ params }: PageProps<"/escala/[id]
       .eq("igreja_id", ctx.igreja.id)
       .order("titulo"),
   ]);
+
+  const textoWhatsapp = culto.repertorioPublicado
+    ? textoWhatsappRepertorio(
+        culto,
+        itens.map((i) => ({ titulo: i.titulo, tom: i.tom ?? i.tomOriginal })),
+        `${await enderecoDoApp()}/culto/${id}`,
+      )
+    : null;
 
   return (
     <div className="space-y-5">
@@ -70,13 +81,23 @@ export default async function RepertorioPage({ params }: PageProps<"/escala/[id]
           </Link>
         </Button>
         {culto.repertorioPublicado ? (
-          <Button type="submit" name="publicar" value="0" variant="ghost">
-            <Undo2 /> Voltar para rascunho
-          </Button>
+          <>
+            {textoWhatsapp && <BotaoWhatsapp texto={textoWhatsapp} />}
+            <Button type="submit" name="publicar" value="0" variant="ghost">
+              <Undo2 /> Voltar para rascunho
+            </Button>
+          </>
         ) : (
-          <Button type="submit" name="publicar" value="1">
-            <Send /> Publicar repertório
-          </Button>
+          <>
+            {culto.escalaPublicada ? (
+              <OpcaoAvisar />
+            ) : (
+              <span className="text-xs text-muted-foreground">Publique a escala para avisar os escalados.</span>
+            )}
+            <Button type="submit" name="publicar" value="1">
+              <Send /> Publicar repertório
+            </Button>
+          </>
         )}
       </form>
     </div>
