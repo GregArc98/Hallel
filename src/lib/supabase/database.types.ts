@@ -250,11 +250,36 @@ export type Database = {
           },
         ]
       }
+      inscricao_push: {
+        Row: {
+          auth: string
+          criado_em: string
+          endpoint: string
+          p256dh: string
+          usuario_id: string
+        }
+        Insert: {
+          auth: string
+          criado_em?: string
+          endpoint: string
+          p256dh: string
+          usuario_id?: string
+        }
+        Update: {
+          auth?: string
+          criado_em?: string
+          endpoint?: string
+          p256dh?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       integrante: {
         Row: {
           aprovado: boolean
           ativo: boolean
           atualizado_em: string
+          avisos_email: boolean
           criado_em: string
           email: string | null
           id: string
@@ -268,6 +293,7 @@ export type Database = {
           aprovado?: boolean
           ativo?: boolean
           atualizado_em?: string
+          avisos_email?: boolean
           criado_em?: string
           email?: string | null
           id?: string
@@ -281,6 +307,7 @@ export type Database = {
           aprovado?: boolean
           ativo?: boolean
           atualizado_em?: string
+          avisos_email?: boolean
           criado_em?: string
           email?: string | null
           id?: string
@@ -468,6 +495,34 @@ export type Database = {
     Functions: {
       atualizar_meu_perfil: {
         Args: { p_igreja: string; p_nome: string; p_telefone: string }
+        Returns: undefined
+      }
+      avisos_destinatarios: {
+        Args: { p_cultos: string[]; p_igreja: string }
+        Returns: {
+          culto_id: string
+          email: string
+          funcao: string
+          integrante_id: string
+          nome: string
+          ordem: number
+        }[]
+      }
+      avisos_inscricoes: {
+        Args: { p_igreja: string; p_integrantes: string[] }
+        Returns: {
+          auth: string
+          endpoint: string
+          integrante_id: string
+          p256dh: string
+        }[]
+      }
+      avisos_remover_inscricoes: {
+        Args: { p_endpoints: string[]; p_igreja: string }
+        Returns: undefined
+      }
+      definir_avisos_email: {
+        Args: { p_ativo: boolean; p_igreja: string }
         Returns: undefined
       }
       entrar_na_equipe: {

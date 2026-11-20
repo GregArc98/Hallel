@@ -25,6 +25,7 @@ Documento vivo com as decisões aprovadas. Atualize ao mudar o escopo.
 | Datas | Strings AAAA-MM-DD (datas civis) e "hoje" no fuso de São Paulo |
 | Saída da equipe | "Ativo" desmarcado = afastado (não entra no app, não aparece para escalar). Remover apaga a pessoa e a tira das escalas |
 | Cache Components | Desativado: quase toda tela depende do usuário logado; simplicidade > ganho marginal |
+| Avisos | Web Push (chaves VAPID, sem serviço pago) + e-mail por SMTP (Gmail com senha de app). Enviados ao publicar, depois da resposta (`after`), um aviso por pessoa com todos os cultos dela. Celular: cada um ativa no aparelho; e-mail: ligado por padrão, desliga no Perfil. WhatsApp: link `wa.me` com o texto pronto (a pessoa escolhe o grupo) |
 | Git | Uma branch por etapa (`etapa-N/...`), commits no padrão Conventional Commits, PR para `main` |
 
 ## Modelo de dados
@@ -89,3 +90,4 @@ Navegação: barra inferior no celular (Início · Escala · Músicas · Mais), 
 | 11 | Cadastro pela própria equipe (convite único + aprovação, último acesso) | ✅ |
 | 12 | Player de ensaio: tom do áudio (segue a cifra), velocidade, ±10 s, Moises/baixar | ✅ |
 | 13 | Login com e-mail e senha (cadastro pelo convite, confirmação do e-mail, nova senha) | ✅ |
+| 14 | Avisos: celular (Web Push) e e-mail ao publicar escala/repertório; texto pronto para o WhatsApp | ✅ |

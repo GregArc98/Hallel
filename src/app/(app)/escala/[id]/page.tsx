@@ -3,8 +3,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BotaoWhatsapp, OpcaoAvisar } from "@/components/avisos/publicacao";
 import { Button } from "@/components/ui/button";
 import { exigirAdmin } from "@/lib/auth";
+import { cultoParaWhatsapp, rotuloCulto, textoWhatsappEscala } from "@/lib/avisos/mensagens";
+import { enderecoDoApp } from "@/lib/avisos/publicacao";
 import { carregarEquipe, carregarFuncoes } from "@/lib/equipe/dados";
 import { carregarCulto, carregarCultos, carregarIndisponibilidades } from "@/lib/escala/dados";
 import {
@@ -49,6 +52,13 @@ export default async function EditarEscalaPage({ params, searchParams }: PagePro
       .filter((c) => c.id !== culto.id && c.data === culto.data && c.periodo === culto.periodo)
       .flatMap((c) => c.vagas.map((v) => v.integranteId)),
   );
+  const textoWhatsapp = culto.escalaPublicada
+    ? textoWhatsappEscala(
+        `Escala — ${rotuloCulto(culto)}`,
+        [cultoParaWhatsapp(culto, funcoes, new Map(equipe.map((m) => [m.id, m.nome])))],
+        `${await enderecoDoApp()}/culto/${culto.id}`,
+      )
+    : null;
   const naoPodem = equipe.filter(
     (m) => m.ativo && estaIndisponivel(m.id, culto.data, culto.periodo, indisponibilidades),
   );
@@ -107,13 +117,19 @@ export default async function EditarEscalaPage({ params, searchParams }: PagePro
             : "Quando estiver pronta, publique para a equipe ver. (Salve antes as mudanças.)"}
         </p>
         {culto.escalaPublicada ? (
-          <Button type="submit" name="publicar" value="0" variant="ghost">
-            <Undo2 /> Voltar para rascunho
-          </Button>
+          <>
+            {textoWhatsapp && <BotaoWhatsapp texto={textoWhatsapp} />}
+            <Button type="submit" name="publicar" value="0" variant="ghost">
+              <Undo2 /> Voltar para rascunho
+            </Button>
+          </>
         ) : (
-          <Button type="submit" name="publicar" value="1">
-            <Send /> Publicar esta escala
-          </Button>
+          <>
+            <OpcaoAvisar />
+            <Button type="submit" name="publicar" value="1">
+              <Send /> Publicar esta escala
+            </Button>
+          </>
         )}
       </form>
 

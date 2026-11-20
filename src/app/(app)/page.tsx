@@ -1,9 +1,11 @@
 import { CalendarDays, ChevronRight, Library, Play, UserX } from "lucide-react";
 import Link from "next/link";
 
+import { CartaoAvisos } from "@/components/avisos/cartao-avisos";
 import { SalvarOffline } from "@/components/pwa/salvar-offline";
 import { Button } from "@/components/ui/button";
 import { exigirIntegrante } from "@/lib/auth";
+import { VAPID_PUBLICA } from "@/lib/env";
 import { carregarFuncoes } from "@/lib/equipe/dados";
 import { carregarCultos, carregarRepertorio } from "@/lib/escala/dados";
 import { ICONE_PERIODO, NOME_PERIODO, dataCurta, hoje, paraUTC } from "@/lib/escala/datas";
@@ -40,6 +42,7 @@ export default async function InicioPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Olá, {ctx.nome}!</h1>
+      <CartaoAvisos chave={VAPID_PUBLICA} />
 
       {proxima ? (
         <section className="space-y-3 rounded-2xl border border-primary/40 bg-primary/5 p-4">

@@ -176,3 +176,23 @@ export function textoWhatsappRepertorio(
 export function linkWhatsapp(texto: string): string {
   return `https://wa.me/?text=${encodeURIComponent(texto)}`;
 }
+
+/** Culto do app (com vagas por id) no formato do texto do WhatsApp. */
+export function cultoParaWhatsapp(
+  c: CultoDoAviso & { vagas: Array<{ funcaoId: string; posicao: number; integranteId: string }> },
+  funcoes: Array<{ id: string; nome: string; ordem: number }>,
+  nomes: Map<string, string>,
+) {
+  const funcao = new Map(funcoes.map((f) => [f.id, f]));
+  return {
+    ...c,
+    vagas: c.vagas
+      .filter((v) => funcao.has(v.funcaoId) && nomes.has(v.integranteId))
+      .map((v) => ({
+        funcao: funcao.get(v.funcaoId)!.nome,
+        ordem: funcao.get(v.funcaoId)!.ordem,
+        posicao: v.posicao,
+        nome: nomes.get(v.integranteId)!,
+      })),
+  };
+}

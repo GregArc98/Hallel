@@ -215,3 +215,43 @@ self.addEventListener("message", (event) => {
   const tarefa = tarefas[tipo];
   if (tarefa) event.waitUntil(tarefa().then(responder, () => responder({ erro: true })));
 });
+
+// ---------------------------------------------------------------------------
+// Avisos (Web Push): o servidor manda { titulo, corpo, url } quando a escala ou o
+// repertório é publicado. Tocar na notificação abre o Hallel naquela página.
+// ---------------------------------------------------------------------------
+self.addEventListener("push", (event) => {
+  let dados = {};
+  try {
+    dados = event.data ? event.data.json() : {};
+  } catch {
+    dados = { corpo: event.data ? event.data.text() : "" };
+  }
+  const titulo = dados.titulo || "Hallel";
+  event.waitUntil(
+    self.registration.showNotification(titulo, {
+      body: dados.corpo || "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: dados.url || "hallel",
+      data: { url: dados.url || "/" },
+      lang: "pt-BR",
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const destino = new URL((event.notification.data && event.notification.data.url) || "/", self.location.origin);
+  if (destino.origin !== self.location.origin) return;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((janelas) => {
+      const aberta = janelas.find((j) => new URL(j.url).origin === self.location.origin);
+      if (aberta) {
+        aberta.focus();
+        return aberta.navigate(destino.href);
+      }
+      return self.clients.openWindow(destino.href);
+    }),
+  );
+});
