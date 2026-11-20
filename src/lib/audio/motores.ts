@@ -1,17 +1,16 @@
 "use client";
 
 /**
- * Motores de mudança de tom do player de ensaio. Os dois recebem o áudio do player nativo
- * (MediaElementSource) e devolvem para a saída; trocar de motor só reconecta a ligação.
+ * Motor de mudança de tom do player de ensaio. Recebe o áudio do player nativo
+ * (MediaElementSource) e devolve para a saída.
  *
- *  • "padrao": SoundTouch (rápido, leve; a voz fica artificial acima de ~3 semitons)
- *  • "qualidade": Signalsmith Stretch com compensação de formantes (preserva o timbre da voz;
- *    exige mais processamento)
+ *  • Principal: Signalsmith Stretch com compensação de formantes — preserva o timbre da voz
+ *    mesmo em tons distantes.
+ *  • Reserva: SoundTouch (mais leve), usado só se o principal não iniciar no aparelho.
  */
-import { type TipoMotor, semitonsCompensados } from "./ensaio";
+import { semitonsCompensados } from "./ensaio";
 
 export interface MotorTom {
-  tipo: TipoMotor;
   aplicar(semitons: number, velocidade: number): void;
   desligar(): void;
 }
@@ -30,7 +29,6 @@ async function motorSoundTouch(contexto: AudioContext, fonte: AudioNode): Promis
   fonte.connect(no);
   no.connect(contexto.destination);
   return {
-    tipo: "padrao",
     aplicar(semitons, velocidade) {
       no.playbackRate.value = velocidade; // o processador desconta o efeito da velocidade
       no.pitchSemitones.value = semitons;
@@ -54,7 +52,6 @@ async function motorSignalsmith(contexto: AudioContext, fonte: AudioNode): Promi
   no.connect(contexto.destination);
   await no.start();
   return {
-    tipo: "qualidade",
     aplicar(semitons, velocidade) {
       void no.schedule({
         semitones: semitonsCompensados(semitons, velocidade),
@@ -70,6 +67,29 @@ async function motorSignalsmith(contexto: AudioContext, fonte: AudioNode): Promi
   };
 }
 
-export function criarMotor(tipo: TipoMotor, contexto: AudioContext, fonte: AudioNode): Promise<MotorTom> {
-  return tipo === "qualidade" ? motorSignalsmith(contexto, fonte) : motorSoundTouch(contexto, fonte);
+const LIMITE_ESPERA_MS = 8000;
+
+function comLimite<T>(promessa: Promise<T>): Promise<T> {
+  return Promise.race([
+    promessa,
+    new Promise<never>((_, falha) => setTimeout(() => falha(new Error("motor não respondeu")), LIMITE_ESPERA_MS)),
+  ]);
+}
+
+/** Liga o motor principal; se ele não iniciar neste aparelho, usa o de reserva. */
+export async function criarMotor(contexto: AudioContext, fonte: AudioNode): Promise<MotorTom> {
+  const principal = motorSignalsmith(contexto, fonte);
+  try {
+    return await comLimite(principal);
+  } catch (erro) {
+    console.warn("Hallel: motor principal de tom indisponível, usando o de reserva", erro);
+    // Se o principal ainda terminar de iniciar depois do limite, desliga para não tocar em dobro.
+    principal.then((m) => m.desligar(), () => {});
+    try {
+      fonte.disconnect();
+    } catch {
+      /* nada ligado */
+    }
+    return comLimite(motorSoundTouch(contexto, fonte));
+  }
 }
