@@ -45,8 +45,6 @@ export function pular(atual: number, delta: number, duracao: number): number {
   return Math.max(0, Math.min(duracao - 0.25, alvo));
 }
 
-export type TipoMotor = "padrao" | "qualidade";
-
 /**
  * Com o áudio tocando mais rápido/devagar (playbackRate, sem correção do navegador), o tom
  * também sobe/desce. Para o motor que recebe esse áudio, o ajuste total é o pedido menos
