@@ -4,7 +4,24 @@ test.describe("sem login", () => {
   test("áreas internas mandam para /entrar, lembrando o destino", async ({ page }) => {
     await page.goto("/musicas");
     await expect(page).toHaveURL(/\/entrar\?proximo=%2Fmusicas/);
-    await expect(page.getByRole("button", { name: /Receber link de acesso/ })).toBeVisible();
+    await expect(page.getByLabel("E-mail")).toBeVisible();
+    await expect(page.getByLabel("Senha", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeVisible();
+  });
+
+  test("senha pode ser mostrada e há recuperação de senha", async ({ page }) => {
+    await page.goto("/entrar");
+    const senha = page.getByLabel("Senha", { exact: true });
+    await senha.fill("segredo123");
+    await expect(senha).toHaveAttribute("type", "password");
+    await page.getByRole("button", { name: "Mostrar senha" }).click();
+    await expect(senha).toHaveAttribute("type", "text");
+
+    await page.getByRole("button", { name: "Esqueci minha senha" }).click();
+    await expect(page.getByRole("heading", { name: "Esqueci minha senha" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Enviar link para nova senha/ })).toBeVisible();
+    await page.getByRole("button", { name: "Voltar para entrar" }).click();
+    await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeVisible();
   });
 
   test("link vencido mostra mensagem em português", async ({ page }) => {

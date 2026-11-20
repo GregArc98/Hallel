@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
+import { type DadosDoCadastro, dadosDoCadastro } from "@/lib/acesso/senha";
 import type { Enums } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,7 +23,7 @@ export interface Vinculo {
 }
 
 export interface Sessao {
-  usuario: { id: string; email: string | null };
+  usuario: { id: string; email: string | null; cadastro: DadosDoCadastro };
   /** Igrejas em que a pessoa é integrante aprovado e ativo. */
   vinculos: Vinculo[];
   /** Cadastros feitos pelo link da equipe, ainda aguardando o líder. */
@@ -44,7 +45,11 @@ export const getSessao = cache(async (): Promise<Sessao | null> => {
   if (error) throw new Error(`Falha ao carregar o cadastro: ${error.message}`);
 
   return {
-    usuario: { id: claims.sub, email: typeof claims.email === "string" ? claims.email : null },
+    usuario: {
+      id: claims.sub,
+      email: typeof claims.email === "string" ? claims.email : null,
+      cadastro: dadosDoCadastro(claims.user_metadata),
+    },
     pendentes: (linhas ?? [])
       .filter((l) => !l.aprovado)
       .map((l) => ({ nome: l.nome, igreja: l.igreja?.nome ?? "" })),

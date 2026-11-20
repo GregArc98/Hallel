@@ -9,7 +9,7 @@ import { alternarConvite, renovarConvite } from "./actions";
 export function ConviteCard({ caminho, ativo, igreja }: { caminho: string; ativo: boolean; igreja: string }) {
   const [copiado, setCopiado] = useState(false);
   const url = typeof window === "undefined" ? caminho : new URL(caminho, window.location.origin).toString();
-  const mensagem = `Pessoal do louvor! 🎵 Entrem no Hallel, o app da escala e do repertório de ${igreja}: ${url}\nÉ só digitar seu e-mail, abrir o link que chegar e preencher nome e WhatsApp.`;
+  const mensagem = `Pessoal do louvor! 🎵 Entrem no Hallel, o app da escala e do repertório de ${igreja}: ${url}\nÉ só preencher nome, WhatsApp, e-mail e criar uma senha.`;
 
   return (
     <section id="convite" className="space-y-3 rounded-xl border p-4">

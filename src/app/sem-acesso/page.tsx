@@ -11,6 +11,8 @@ export default async function SemAcessoPage() {
   if (!sessao) redirect("/entrar");
   if (sessao.vinculos.length > 0) redirect("/");
   if (sessao.pendentes.length > 0) redirect("/aguardando");
+  // Criou a conta pelo convite, mas o pedido não foi concluído: termina por lá.
+  if (sessao.usuario.cadastro.convite) redirect(`/convite/${sessao.usuario.cadastro.convite}`);
 
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12 text-center">

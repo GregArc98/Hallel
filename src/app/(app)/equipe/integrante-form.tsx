@@ -70,7 +70,7 @@ export function IntegranteForm({
             <span className="block text-sm text-destructive">{erros.email}</span>
           ) : (
             <span className="block text-xs text-muted-foreground">
-              A pessoa entra com este e-mail (link mágico ou Google).
+              A pessoa cria a senha com este e-mail pelo link de convite da equipe e já entra aprovada.
             </span>
           )}
         </label>

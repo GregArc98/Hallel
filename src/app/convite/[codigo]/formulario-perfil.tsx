@@ -9,18 +9,29 @@ import { type EstadoConvite, entrarNaEquipe } from "./acoes";
 const campo =
   "h-12 w-full rounded-lg border bg-background px-3 text-base outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
-export function FormularioPerfil({ codigo, email }: { codigo: string; email: string }) {
+/** Para quem já tem conta (ou criou pelo Google): confirma nome e WhatsApp e pede a entrada. */
+export function FormularioPerfil({
+  codigo,
+  email,
+  nome,
+  telefone,
+}: {
+  codigo: string;
+  email: string;
+  nome: string;
+  telefone: string;
+}) {
   const [estado, acao, enviando] = useActionState<EstadoConvite, FormData>(entrarNaEquipe, {});
   return (
     <form action={acao} className="space-y-4">
       <input type="hidden" name="codigo" value={codigo} />
       <label className="block space-y-1.5">
         <span className="text-sm font-medium">Seu nome *</span>
-        <input name="nome" required autoComplete="name" maxLength={80} placeholder="Como a equipe te chama" className={campo} />
+        <input name="nome" required autoComplete="name" maxLength={80} defaultValue={nome} placeholder="Como a equipe te chama" className={campo} />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-medium">WhatsApp</span>
-        <input name="telefone" type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 90000-0000" className={campo} />
+        <input name="telefone" type="tel" inputMode="tel" autoComplete="tel" maxLength={30} defaultValue={telefone} placeholder="(11) 90000-0000" className={campo} />
       </label>
       <div className="space-y-1.5">
         <span className="text-sm font-medium">E-mail</span>
