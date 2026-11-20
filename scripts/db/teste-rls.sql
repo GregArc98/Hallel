@@ -254,13 +254,62 @@ end $$;
 reset role;
 select teste.checar((select count(*) = 2 from public.acesso_integrante), 'acessos registrados para líder e membro');
 
+-- Avisos (push e e-mail)
+reset role;
+select teste.como('breno@exemplo.com');
+insert into public.inscricao_push (endpoint, p256dh, auth) values ('https://push.exemplo.com/breno', 'chave', 'segredo');
+select teste.checar((select count(*) = 1 from public.inscricao_push), 'membro cria e vê a própria inscrição de aviso');
+do $$ begin
+  insert into public.inscricao_push (endpoint, usuario_id, p256dh, auth)
+    values ('https://push.exemplo.com/falsa', (select id from auth.users where email = 'lider@exemplo.com'), 'x', 'y');
+  raise exception 'FALHOU: membro criou inscrição em nome de outro';
+exception when insufficient_privilege then raise notice 'ok: inscrição só em nome próprio';
+end $$;
+select public.definir_avisos_email((select igreja_id from public.integrante where nome = 'Breno'), false);
+select teste.checar((select not avisos_email from public.integrante where nome = 'Breno'), 'membro desliga o próprio aviso por e-mail');
+do $$ begin
+  perform * from public.avisos_destinatarios((select igreja_id from public.integrante where nome = 'Breno'), '{}');
+  raise exception 'FALHOU: membro leu destinatários';
+exception when insufficient_privilege then raise notice 'ok: só líder lê destinatários dos avisos';
+end $$;
+do $$ begin
+  perform * from public.avisos_inscricoes((select igreja_id from public.integrante where nome = 'Breno'), '{}');
+  raise exception 'FALHOU: membro leu inscrições';
+exception when insufficient_privilege then raise notice 'ok: só líder lê inscrições dos avisos';
+end $$;
+
+reset role;
+select teste.como('lider@exemplo.com');
+select teste.checar((select count(*) = 0 from public.inscricao_push), 'líder não lê a tabela de inscrições dos outros');
+select teste.checar(
+  (select count(*) = 1 and bool_and(email is null) and bool_and(funcao = 'Bateria')
+   from public.avisos_destinatarios(
+     (select igreja_id from public.integrante where nome = 'Breno'),
+     array(select id from public.culto where data = '2026-11-22'))
+   where nome = 'Breno'),
+  'líder vê o escalado e respeita o e-mail desligado');
+select teste.checar(
+  (select count(*) = 1 from public.avisos_inscricoes(
+     (select igreja_id from public.integrante where nome = 'Breno'),
+     array(select id from public.integrante where nome = 'Breno'))),
+  'líder recebe a inscrição do escalado para enviar');
+do $$ begin
+  perform * from public.avisos_inscricoes('00000000-0000-0000-0000-0000000000aa', '{}');
+  raise exception 'FALHOU: líder leu inscrições de outra igreja';
+exception when insufficient_privilege then raise notice 'ok: líder não lê avisos de outra igreja';
+end $$;
+select public.avisos_remover_inscricoes((select igreja_id from public.integrante where nome = 'Breno'), array['https://push.exemplo.com/breno']);
+reset role;
+select teste.checar((select count(*) = 0 from public.inscricao_push), 'inscrição vencida removida pelo envio');
+
 -- Funções auxiliares não ficam na API pública
 select teste.checar(
   not exists (
     select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prosecdef
-      and p.proname not in ('igreja_do_convite', 'entrar_na_equipe', 'atualizar_meu_perfil', 'registrar_acesso', 'renovar_convite')
+      and p.proname not in ('igreja_do_convite', 'entrar_na_equipe', 'atualizar_meu_perfil', 'registrar_acesso', 'renovar_convite',
+                            'definir_avisos_email', 'avisos_destinatarios', 'avisos_inscricoes', 'avisos_remover_inscricoes')
   ),
-  'só as funções de convite/perfil/acesso são security definer na API (intencional)');
+  'só as funções de convite/perfil/acesso/avisos são security definer na API (intencional)');
 
 \echo 'TODOS OS TESTES DE BANCO PASSARAM'
